@@ -1,4 +1,4 @@
-package hub
+package parser
 
 import (
 	"strconv"
@@ -50,4 +50,8 @@ func (a Args) GetInt(idx int) (int, bool) {
 	}
 
 	return v, true
+}
+
+func (a Args) Encode() string {
+	return strings.Join(a, " ")
 }

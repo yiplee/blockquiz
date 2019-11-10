@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"strconv"
-	"strings"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
@@ -31,18 +30,13 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		input = transfer.Memo
 	}
 
-	actions := strings.FieldsFunc(input, func(r rune) bool {
-		return r == ';'
-	})
+	cmds, err := h.parser.Parse(ctx, input)
+	if err != nil {
+		return nil
+	}
 
-	for idx, action := range actions {
-		cmd, err := h.parser.Parse(ctx, action)
-		if err != nil {
-			// action is invalid
-			continue
-		}
-
-		traceID := msg.MessageId
+	traceID := msg.MessageId
+	for idx, cmd := range cmds {
 		if idx > 0 {
 			traceID = uuid.Modify(traceID, strconv.Itoa(idx))
 		}
