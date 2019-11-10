@@ -21,7 +21,7 @@ func provideCommandStore(db *db.DB) core.CommandStore {
 	return command.New(db, true)
 }
 
-func provideCourseStore(db *db.DB) core.CourseStore {
+func provideCourseStore() core.CourseStore {
 	return course.LoadCourses(cfg.Course.Path)
 }
 

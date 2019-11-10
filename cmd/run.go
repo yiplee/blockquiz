@@ -32,7 +32,7 @@ func runEngine(ctx context.Context) error {
 	commandParser := provideParser()
 	wallets := provideWalletStore(db)
 	walletz := provideWalletService()
-	courses := provideCourseStore(db)
+	courses := provideCourseStore()
 	localizer := provideLocalizer()
 
 	g.Go(func() error {

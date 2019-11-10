@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"strconv"
+	"strings"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
@@ -32,7 +33,7 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 			return nil
 		}
 
-		input = transfer.Memo
+		input = strings.ReplaceAll(transfer.Memo, "+", " ")
 	}
 
 	cmds, err := h.parser.Parse(ctx, input)

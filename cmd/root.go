@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"path"
@@ -62,7 +61,6 @@ func initConfig() {
 	}
 
 	cfg = c
-	fmt.Printf("%+v\n", c)
 }
 
 func initLogger(enableDebug bool) {

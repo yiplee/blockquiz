@@ -10,18 +10,18 @@ import (
 type (
 	Course struct {
 		ID        int64       `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-		Language  string      `gorm:"size:36" json:"language,omitempty"`
-		Title     string      `gorm:"size:128" json:"title,omitempty"`
-		Summary   string      `gorm:"size:1024" json:"summary,omitempty"`
-		Content   string      `gorm:"type:LONGTEXT" json:"content,omitempty"`
-		URL       string      `gorm:"size:256" json:"url,omitempty"`
-		Questions []*Question `gorm:"-" json:"question,omitempty"`
+		Language  string      `gorm:"size:36" json:"language,omitempty" yaml:"language"`
+		Title     string      `gorm:"size:128" json:"title,omitempty" yaml:"title"`
+		Summary   string      `gorm:"size:1024" json:"summary,omitempty" yaml:"summary"`
+		Content   string      `gorm:"type:LONGTEXT" json:"content,omitempty" yaml:"content"`
+		URL       string      `gorm:"size:256" json:"url,omitempty" yaml:"url"`
+		Questions []*Question `gorm:"-" json:"questions,omitempty" yaml:"questions"`
 	}
 
 	Question struct {
-		Content string   `json:"content,omitempty"`
-		Choices []string `json:"choice,omitempty"`
-		Answer  int      `json:"answer,omitempty"` // >= 0
+		Content string   `json:"content,omitempty" yaml:"content"`
+		Choices []string `json:"choices,omitempty" yaml:"choices"`
+		Answer  int      `json:"answer,omitempty" yaml:"answer"` // >= 0
 	}
 
 	CourseStore interface {

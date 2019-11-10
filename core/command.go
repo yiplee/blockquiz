@@ -10,7 +10,7 @@ const (
 	ActionSwitchEnglish  = "en"              // 切换到英文
 	ActionSwitchChinese  = "zh"              // 切换到中文
 	ActionShowCourse     = "show_course"     // 开始课程
-	ActionRandomCourse   = "random_course"   // 随机课程
+	ActionRandomCourse   = "random"          // 随机课程
 	ActionShowQuestion   = "show_question"   // 开始答题
 	ActionAnswerQuestion = "answer_question" // 答题
 	ActionRequestCoin    = "coin"            // 请求答题币

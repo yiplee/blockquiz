@@ -22,7 +22,8 @@ func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string
 	query.Set("asset", c.d.config.CoinAsset)
 	query.Set("amount", c.d.config.CoinAmount.Truncate(8).String())
 	query.Set("trace", traceID)
-	query.Set("memo", c.d.parser.Encode(ctx, cmds...))
+	memo := c.d.parser.Encode(ctx, cmds...)
+	query.Set("memo", memo)
 	uri.RawQuery = query.Encode()
 	return uri.String()
 }
@@ -147,7 +148,7 @@ func (c *commandContext) showCourseButtons(ctx context.Context) *bot.MessageRequ
 	showQuestion := &core.Command{
 		Action:   core.ActionShowQuestion,
 		Course:   course.ID,
-		Question: 1,
+		Question: 0,
 	}
 
 	buttons = append(buttons, c.newButton(
@@ -169,12 +170,13 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 	}
 
 	var buf bytes.Buffer
-	fmt.Println(&buf, c.question.Content)
-	fmt.Println(&buf)
+	fmt.Fprintln(&buf, c.question.Content)
+	fmt.Fprintln(&buf)
 	for idx, choice := range c.question.Choices {
 		fmt.Fprintf(&buf, "%s %s\n", core.AnswerToString(idx), choice)
 	}
 
+	logger.FromContext(ctx).Debugln("showQuestionContent", string(buf.Bytes()))
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
 	return req
 }
@@ -187,7 +189,7 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 		MessageId:      uuid.Modify(c.traceID, "show question buttons"),
 	}
 
-	buttons := make([]button, len(c.question.Choices))
+	buttons := make([]button, len(c.question.Choices[:2]))
 	for idx := range buttons {
 		cmd := &core.Command{
 			Action:   core.ActionAnswerQuestion,
@@ -202,6 +204,7 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 	}
 
 	data, _ := jsoniter.Marshal(buttons)
+	logger.FromContext(ctx).Debugln("showQuestionChoiceButtons", string(data))
 	req.Data = base64.StdEncoding.EncodeToString(data)
 	return req
 }
