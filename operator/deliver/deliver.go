@@ -3,11 +3,13 @@ package deliver
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/text/localizer"
+	"github.com/fox-one/pkg/uuid"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/store"
 	"golang.org/x/sync/errgroup"
@@ -20,7 +22,7 @@ type Deliver struct {
 	users     core.UserStore
 	commands  core.CommandStore
 	parser    core.CommandParser
-	lessons   core.LessonStore
+	courses   core.CourseStore
 	wallets   core.WalletStore
 	localizer *localizer.Localizer
 	config    Config
@@ -74,7 +76,7 @@ func (d *Deliver) run(ctx context.Context) error {
 }
 
 func (d *Deliver) post(ctx context.Context, userID string, cmds []*core.Command) error {
-	log := logger.FromContext(ctx)
+	log := logger.FromContext(ctx).WithField("user_id", userID)
 
 	var requests []*bot.MessageRequest
 
@@ -88,9 +90,11 @@ func (d *Deliver) post(ctx context.Context, userID string, cmds []*core.Command)
 		requests = append(requests, reqs...)
 	}
 
-	if err := bot.PostMessages(ctx, requests, d.config.ClientID, d.config.SessionID, d.config.SessionKey); err != nil {
-		log.WithError(err).Error("post messages")
-		return err
+	if len(requests) > 0 {
+		if err := bot.PostMessages(ctx, requests, d.config.ClientID, d.config.SessionID, d.config.SessionKey); err != nil {
+			log.WithError(err).Error("post messages")
+			return err
+		}
 	}
 
 	if err := d.commands.Deletes(ctx, cmds); err != nil {
@@ -102,25 +106,112 @@ func (d *Deliver) post(ctx context.Context, userID string, cmds []*core.Command)
 }
 
 func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
-	var requests []*bot.MessageRequest
-
-	user, err := d.users.FindMixinID(ctx, cmd.UserID)
-	if store.IsErrNotFound(err) {
-		user = &core.User{
-			MixinID:  cmd.UserID,
-			Language: "",
-		}
-		if err := d.users.Create(ctx, user); err != nil {
-			return nil, fmt.Errorf("create user failed: %w", err)
-		}
+	c, err := d.prepareContext(ctx, cmd)
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("find user by mixin id %s failed: %w", cmd.UserID, err)
+	var requests []*bot.MessageRequest
+
+	// 设置语言
+	switch cmd.Action {
+	case core.ActionSwitchChinese, core.ActionSwitchEnglish:
+		if cmd.Action != c.user.Language {
+			c.user.Language = cmd.Action
+			if err := d.users.Update(ctx, c.user); err != nil {
+				return nil, fmt.Errorf("update user failed: %w", err)
+			}
+		}
+
+		req := c.languageSwitched(ctx)
+		requests = append(requests, req)
+		return requests, nil
 	}
 
 	// 还没有设置语言
-	if user.Language == "" {
-
+	if c.user.Language == "" {
+		req := c.selectLanguage(ctx, cmd)
+		requests = append(requests, req)
+		return requests, nil
 	}
+
+	switch cmd.Action {
+	case core.ActionUsage:
+		requests = append(requests, c.showUsage(ctx))
+	case core.ActionRequestCoin:
+		// 每个小时只能领取一次
+		req := &core.Transfer{
+			TraceID:    uuid.Modify(cmd.UserID, cmd.CreatedAt.Truncate(time.Hour).Format(time.RFC3339)),
+			OpponentID: cmd.UserID,
+			AssetID:    d.config.CoinAsset,
+			Amount:     "10",
+			Memo:       "from blockquiz",
+		}
+		if err := d.wallets.CreateTransfer(ctx, req); err != nil {
+			return nil, fmt.Errorf("create transfer failed: %w", err)
+		}
+	case core.ActionRandomCourse:
+		course, err := d.pickRandomCourse(ctx, c.user)
+		if err != nil {
+			if store.IsErrNotFound(err) {
+				break
+			}
+			return nil, fmt.Errorf("pick random course failed: %w", err)
+		}
+
+		c.course = course
+		requests = append(requests, c.showCourseContent(ctx))
+		requests = append(requests, c.showCourseButtons(ctx))
+	case core.ActionShowCourse:
+		if c.course == nil {
+			break
+		}
+
+		requests = append(requests, c.showCourseContent(ctx))
+		requests = append(requests, c.showCourseButtons(ctx))
+	case core.ActionShowQuestion:
+		if c.question == nil {
+			break
+		}
+
+		requests = append(requests, c.showQuestionContent(ctx))
+		requests = append(requests, c.showQuestionChoiceButtons(ctx))
+	case core.ActionAnswerQuestion:
+		if c.question == nil {
+			break
+		}
+
+		right := c.question.Answer == cmd.Answer
+		requests = append(requests, c.answerFeedback(ctx, right))
+
+		if _, ok := c.course.Question(cmd.Question + 1); ok {
+			requests = append(requests, c.showNextQuestionButton(ctx, cmd.Question+1))
+		} else {
+			requests = append(requests, c.showFinishCourse(ctx))
+			if nextCourse, err := d.courses.FindNext(ctx, c.course.ID); err == nil {
+				requests = append(requests, c.showNextCourseButton(ctx, nextCourse))
+			}
+		}
+	default:
+		logger.FromContext(ctx).Warnf("unknown action %s", cmd.Action)
+	}
+
+	return requests, nil
+}
+
+func (d *Deliver) pickRandomCourse(ctx context.Context, user *core.User) (*core.Course, error) {
+	list, err := d.courses.ListAll(ctx, user.Language)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) == 0 {
+		return nil, store.ErrNotFound
+	}
+
+	rand.Shuffle(len(list), func(i, j int) {
+		list[i], list[j] = list[j], list[i]
+	})
+
+	return list[0], nil
 }

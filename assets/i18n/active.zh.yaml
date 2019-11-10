@@ -8,12 +8,15 @@ usage: |
   > coin: 申请一些答题币
   > random: 随机开始一个课程
   > ? or usage: 查看使用帮助
+
+  玩得开心 :)
+
 show_course: 学习课程
 show_question: 开始答题
 answer_right: 🎉 恭喜你回答正确
 answer_wrong: 回答错误
 answer_wrong_with_right_choice: 回答错误，正确答案是 {{.answer}}
 next_question: 下一题
-finish_cousre: 你已完成课程 {{.title}}，收获颇丰吧 😊
-next_cource: 下一课
+finish_course: 你已完成课程 {{.title}}，收获颇丰吧 😊
+next_course: 下一课
 

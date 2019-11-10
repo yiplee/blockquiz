@@ -8,11 +8,14 @@ usage: |
   > coin: apply for some quiz coin
   > random: start a random course
   > ? or usage: help about blockquiz
+
+  Have fun :)
+
 show_course: Learning Course
 show_question: Start answering questions
 answer_right: 🎉 Congratulations, you answered correctly.
 answer_wrong: The answer is wrong.
 answer_wrong_with_right_choice: The answer is wrong, the correct answer is {{.answer}}.
 next_question: Next question
-finish_cousre: You have completed the course {{.title}}.
-next_cource: Next Course
+finish_course: You have completed the course {{.title}}.
+next_course: Next Course

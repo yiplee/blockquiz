@@ -18,14 +18,12 @@ type (
 	Question struct {
 		Content string   `json:"content,omitempty"`
 		Choices []string `json:"choice,omitempty"`
-		Answer  Answer   `json:"answer,omitempty"`
+		Answer  int      `json:"answer,omitempty"` // >= 0
 	}
 )
 
-type Answer int
-
-func (a Answer) String() string {
-	return string([]byte{'A' + byte(a)})
+func AnswerToString(answer int) string {
+	return string([]byte{'A' + byte(answer)})
 }
 
 func (lesson *Course) Question(idx int) (*Question, bool) {

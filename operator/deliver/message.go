@@ -1,25 +1,26 @@
 package deliver
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/url"
 
 	"github.com/MixinNetwork/bot-api-go-client"
-	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 )
 
-func (d *Deliver) buttonAction(ctx context.Context, cmds []*core.Command) string {
+func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
 	uri, _ := url.Parse("mixin://pay")
 	query := uri.Query()
-	query.Set("opponent_id", d.config.ClientID)
-	query.Set("asset_id", d.config.CoinAsset)
-	query.Set("amount", d.config.CoinAmount.Truncate(8).String())
-	query.Set("trace_id", uuid.New())
-	query.Set("memo", d.parser.Encode(ctx, cmds))
+	query.Set("opponent_id", c.d.config.ClientID)
+	query.Set("asset_id", c.d.config.CoinAsset)
+	query.Set("amount", c.d.config.CoinAmount.Truncate(8).String())
+	query.Set("trace_id", traceID)
+	query.Set("memo", c.d.parser.Encode(ctx, cmds...))
 	return uri.String()
 }
 
@@ -29,24 +30,251 @@ type button struct {
 	Action string `json:"action,omitempty"`
 }
 
-func (d *Deliver) selectLanguage(ctx context.Context, user *core.User) *bot.MessageRequest {
+func (c *commandContext) newButton(label, action string) button {
+	return button{
+		Label:  label,
+		Color:  c.d.config.ButtonColor,
+		Action: action,
+	}
+}
+
+/*
+新用户（还没设置语言）来的时候
+发送一组设置语言的按钮，点击之后会发送 usage 信息和一个随机课程给用户
+*/
+func (c *commandContext) selectLanguage(ctx context.Context, next *core.Command) *bot.MessageRequest {
 	req := &bot.MessageRequest{
-		ConversationId: bot.UniqueConversationId(user.MixinID, d.config.ClientID),
-		RecipientId:    user.MixinID,
 		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "select language"),
 	}
 
 	var buttons []button
 	for _, lang := range []string{core.ActionSwitchEnglish, core.ActionSwitchChinese} {
-		l := localizer.WithLanguage(d.localizer, lang)
-		cmds := []*core.Command{{Action: lang}}
+		cmds := []*core.Command{
+			{Action: lang},
+		}
 
-		buttons = append(buttons, button{
-			Label:  l.MustLocalize("select_language"),
-			Color:  d.config.ButtonColor,
-			Action: d.parser.Encode(ctx, cmds),
-		})
+		if next != nil {
+			cmds = append(cmds, next)
+		}
+
+		buttons = append(buttons, c.newButton(
+			c.localizer.MustLocalize("select_language"),
+			c.paymentButtonAction(ctx, uuid.New(), cmds...),
+		))
 	}
+
+	data, _ := jsoniter.Marshal(buttons)
+	req.Data = base64.StdEncoding.EncodeToString(data)
+	return req
+}
+
+func (c *commandContext) languageSwitched(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "language switched"),
+	}
+
+	data := c.localizer.MustLocalize("language_switched")
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
+func (c *commandContext) showUsage(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show usage"),
+	}
+
+	data := c.localizer.MustLocalize("usage")
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
+func (c *commandContext) showCourseContent(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show course content"),
+	}
+
+	course := c.course
+
+	var buf bytes.Buffer
+	fmt.Fprintln(&buf, c.course.Title)
+	fmt.Fprintln(&buf) // 换行
+
+	if course.URL == "" {
+		fmt.Fprintln(&buf, course.Content)
+	} else {
+		fmt.Fprintln(&buf, course.Summary)
+	}
+
+	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
+	return req
+}
+
+func (c *commandContext) showCourseButtons(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show course buttons"),
+	}
+
+	var buttons []button
+	course := c.course
+	if course.URL != "" {
+		buttons = append(buttons, c.newButton(
+			c.localizer.MustLocalize("show_course"),
+			course.URL,
+		))
+	}
+
+	showQuestion := &core.Command{
+		Action:   core.ActionShowQuestion,
+		Course:   course.ID,
+		Question: 1,
+	}
+
+	buttons = append(buttons, c.newButton(
+		c.localizer.MustLocalize("show_question"),
+		c.paymentButtonAction(ctx, uuid.New(), showQuestion),
+	))
+
+	data, _ := jsoniter.Marshal(buttons)
+	req.Data = base64.StdEncoding.EncodeToString(data)
+	return req
+}
+
+func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show question content"),
+	}
+
+	var buf bytes.Buffer
+	fmt.Println(&buf, c.question.Content)
+	fmt.Println(&buf)
+	for idx, choice := range c.question.Choices {
+		fmt.Fprintf(&buf, "%s %s\n", core.AnswerToString(idx), choice)
+	}
+
+	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
+	return req
+}
+
+func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show question buttons"),
+	}
+
+	buttons := make([]button, len(c.question.Choices))
+	for idx := range buttons {
+		cmd := &core.Command{
+			Action:   core.ActionAnswerQuestion,
+			Course:   c.course.ID,
+			Question: c.cmd.Question,
+			Answer:   idx,
+		}
+		buttons[idx] = c.newButton(
+			core.AnswerToString(idx),
+			c.paymentButtonAction(ctx, req.MessageId, cmd),
+		)
+	}
+
+	data, _ := jsoniter.Marshal(buttons)
+	req.Data = base64.StdEncoding.EncodeToString(data)
+	return req
+}
+
+func (c *commandContext) answerFeedback(ctx context.Context, right bool) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "answer feedback"),
+	}
+
+	var data string
+
+	if right {
+		data = c.localizer.MustLocalize("answer_right")
+	} else {
+		rightChoice := c.question.Choices[c.question.Answer]
+		answer := fmt.Sprintf("%s %s", core.AnswerToString(c.question.Answer), rightChoice)
+		data = c.localizer.MustLocalize("answer_wrong_with_right_choice", "answer", answer)
+	}
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
+func (c *commandContext) showFinishCourse(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "finish course"),
+	}
+
+	data := c.localizer.MustLocalize("finish_course", "title", c.course.Title)
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
+func (c *commandContext) showNextCourseButton(ctx context.Context, next *core.Course) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "next course button"),
+	}
+
+	cmd := &core.Command{
+		Action: core.ActionShowCourse,
+		Course: next.ID,
+	}
+
+	buttons := []button{c.newButton(
+		c.localizer.MustLocalize("next_course"),
+		c.paymentButtonAction(ctx, uuid.New(), cmd),
+	)}
+
+	data, _ := jsoniter.Marshal(buttons)
+	req.Data = base64.StdEncoding.EncodeToString(data)
+	return req
+}
+
+func (c *commandContext) showNextQuestionButton(ctx context.Context, nextQuestion int) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "next question button"),
+	}
+
+	cmd := &core.Command{
+		Action:   core.ActionShowQuestion,
+		Course:   c.course.ID,
+		Question: nextQuestion,
+	}
+
+	buttons := []button{c.newButton(
+		c.localizer.MustLocalize("next_question"),
+		c.paymentButtonAction(ctx, uuid.New(), cmd),
+	)}
 
 	data, _ := jsoniter.Marshal(buttons)
 	req.Data = base64.StdEncoding.EncodeToString(data)
