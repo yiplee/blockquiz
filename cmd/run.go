@@ -27,6 +27,7 @@ func runEngine(ctx context.Context) error {
 	var g errgroup.Group
 
 	db := provideDB()
+	defer db.Close()
 	users := provideUserStore(db)
 	commands := provideCommandStore(db)
 	commandParser := provideParser()
