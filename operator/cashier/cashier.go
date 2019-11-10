@@ -5,7 +5,12 @@ import (
 	"time"
 
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/lruset"
 	"github.com/yiplee/blockquiz/core"
+)
+
+const (
+	limit = 100
 )
 
 type Cashier struct {
@@ -18,8 +23,9 @@ func New(
 	walletz core.WalletService,
 ) *Cashier {
 	return &Cashier{
-		wallets: wallets,
-		walletz: walletz,
+		wallets:   wallets,
+		walletz:   walletz,
+		transfers: lruset.New(limit),
 	}
 }
 
@@ -40,7 +46,7 @@ func (c *Cashier) Work(ctx context.Context, dur time.Duration) error {
 func (c *Cashier) run(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
-	requests, err := c.wallets.List(ctx, 100)
+	requests, err := c.wallets.ListTransfers(ctx, limit)
 	if err != nil {
 		log.WithError(err).Error("list pending transfers")
 		return err
@@ -60,7 +66,7 @@ func (c *Cashier) run(ctx context.Context) error {
 	if len(ids) > 0 {
 		log.Debugf("finish %d transfers", len(ids))
 
-		if err := c.wallets.Deletes(ctx, ids); err != nil {
+		if err := c.wallets.DeleteTransfers(ctx, ids); err != nil {
 			log.WithError(err).Error("delete transfers")
 			return err
 		}

@@ -9,7 +9,6 @@ const (
 	ActionHelp           = "help"            // 帮助
 	ActionSwitchEnglish  = "en"              // 切换到英文
 	ActionSwitchChinese  = "zh"              // 切换到中文
-	ActionSubscribe      = "subscribe"       // 新用户
 	ActionShowLesson     = "show_lesson"     // 开始课程
 	ActionShowQuestion   = "show_question"   // 开始答题
 	ActionAnswerQuestion = "answer_question" // 答题
@@ -25,9 +24,9 @@ type Command struct {
 	TraceID   string     `gorm:"size:36" json:"trace_id,omitempty"`
 	UserID    string     `gorm:"size:36" json:"user_id,omitempty"`
 	Action    string     `gorm:"size:256" json:"action,omitempty"`
-	Chapter   int64      `json:"chapter,omitempty"`
-	Question  int64      `json:"question_number,omitempty"`
-	Answer    Answer     `json:"answer,omitempty"`
+	Lesson    int64      `json:"lesson,omitempty"`
+	Question  int        `json:"question_number,omitempty"`
+	Answer    int        `json:"answer,omitempty"`
 }
 
 type CommandStore interface {

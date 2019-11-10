@@ -13,9 +13,10 @@ type Transfer struct {
 }
 
 type WalletStore interface {
-	Create(ctx context.Context, transfer *Transfer) error
-	Deletes(ctx context.Context, traceIDs []string) error
-	List(ctx context.Context, limit int) ([]*Transfer, error)
+	CreateTransfer(ctx context.Context, transfer *Transfer) error
+	DeleteTransfers(ctx context.Context, traceIDs []string) error
+	ListTransfers(ctx context.Context, limit int) ([]*Transfer, error)
+	CountTransfers(ctx context.Context) (int64, error)
 }
 
 type WalletService interface {

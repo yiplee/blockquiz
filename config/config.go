@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	jsoniter "github.com/json-iterator/go"
@@ -18,7 +19,7 @@ type (
 	}
 
 	Bot struct {
-		UserID     string `json:"user_id,omitempty"`
+		ClientID   string `json:"client_id,omitempty"`
 		SessionID  string `json:"session_id,omitempty"`
 		SessionKey string `json:"session_key,omitempty"`
 		PinToken   string `json:"pin_token,omitempty"`
@@ -42,23 +43,23 @@ type (
 func Load(configPath string) (*Config, error) {
 	f, err := os.Open(configPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open config file at %s failed: %w", configPath, err)
 	}
 	defer f.Close()
 
 	viper.SetConfigType("yaml")
 	if err := viper.ReadConfig(f); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("viper read config failed: %w", err)
 	}
 
 	data, err := jsoniter.Marshal(viper.AllSettings())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal config data failed: %w", err)
 	}
 
 	var cfg Config
 	if err := jsoniter.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unmarshal config data failed: %w", err)
 	}
 
 	return &cfg, nil
