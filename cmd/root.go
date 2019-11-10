@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	"math/rand"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -29,8 +30,10 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	rootCmd.Version = version.String()
+	rand.Seed(time.Now().UnixNano())
+
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 		os.Exit(1)
 	}
 }

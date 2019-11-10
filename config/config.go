@@ -32,8 +32,8 @@ type (
 		Path string `json:"path,omitempty"`
 
 		// 答题用的币的 asset id
-		CoinAssetID string          `json:"coin_asset_id,omitempty"`
-		CoinAmount  decimal.Decimal `json:"coin_amount,omitempty"`
+		CoinAsset  string          `json:"coin_asset,omitempty"`
+		CoinAmount decimal.Decimal `json:"coin_amount,omitempty"`
 
 		// 答对奖励
 		RewardAssetID string          `json:"reward_asset_id,omitempty"`
