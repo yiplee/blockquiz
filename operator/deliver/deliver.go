@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MixinNetwork/bot-api-go-client"
+	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
@@ -26,6 +27,30 @@ type Deliver struct {
 	wallets   core.WalletStore
 	localizer *localizer.Localizer
 	config    Config
+}
+
+func New(
+	users core.UserStore,
+	commands core.CommandStore,
+	parser core.CommandParser,
+	courses core.CourseStore,
+	wallets core.WalletStore,
+	localizer *localizer.Localizer,
+	config Config,
+) *Deliver {
+	if _, err := govalidator.ValidateStruct(config); err != nil {
+		panic(err)
+	}
+
+	return &Deliver{
+		users:     users,
+		commands:  commands,
+		parser:    parser,
+		courses:   courses,
+		wallets:   wallets,
+		localizer: localizer,
+		config:    config,
+	}
 }
 
 func (d *Deliver) Run(ctx context.Context, dur time.Duration) error {
