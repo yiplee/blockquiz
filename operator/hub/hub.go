@@ -12,14 +12,14 @@ import (
 )
 
 type Hub struct {
-	users    core.UserStore
 	commands core.CommandStore
+	parser   core.CommandParser
 	config   Config
 }
 
 func New(
-	users core.UserStore,
 	commands core.CommandStore,
+	parser core.CommandParser,
 	config Config,
 ) *Hub {
 	if _, err := govalidator.ValidateStruct(config); err != nil {
@@ -27,8 +27,8 @@ func New(
 	}
 
 	return &Hub{
-		users:    users,
 		commands: commands,
+		parser:   parser,
 		config:   config,
 	}
 }

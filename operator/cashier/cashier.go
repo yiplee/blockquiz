@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/lruset"
 	"github.com/yiplee/blockquiz/core"
 )
 
@@ -23,9 +22,8 @@ func New(
 	walletz core.WalletService,
 ) *Cashier {
 	return &Cashier{
-		wallets:   wallets,
-		walletz:   walletz,
-		transfers: lruset.New(limit),
+		wallets: wallets,
+		walletz: walletz,
 	}
 }
 

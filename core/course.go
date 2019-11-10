@@ -5,8 +5,8 @@ import (
 )
 
 type (
-	Lesson struct {
-		Chapter   int64       `json:"chapter,omitempty"`
+	Course struct {
+		ID        int64       `gorm:"PRIMARY_KEY" json:"id,omitempty"`
 		Language  string      `gorm:"size:36" json:"language,omitempty"`
 		Title     string      `gorm:"size:128" json:"title,omitempty"`
 		Summary   string      `gorm:"size:1024" json:"summary,omitempty"`
@@ -28,7 +28,7 @@ func (a Answer) String() string {
 	return string([]byte{'A' + byte(a)})
 }
 
-func (lesson *Lesson) Question(idx int) (*Question, bool) {
+func (lesson *Course) Question(idx int) (*Question, bool) {
 	if questions := lesson.Questions[:]; idx >= 0 && idx < len(questions) {
 		return questions[idx], true
 	}
@@ -36,9 +36,9 @@ func (lesson *Lesson) Question(idx int) (*Question, bool) {
 	return nil, false
 }
 
-type LessonStore interface {
-	Add(ctx context.Context, lesson *Lesson) error
-	ListAll(ctx context.Context, language string) ([]*Lesson, error)
-	Find(ctx context.Context, language string, chapter int64) (*Lesson, error)
-	FindNext(ctx context.Context, language string, chapter int64) (*Lesson, error)
+type CourseStore interface {
+	Add(ctx context.Context, lesson *Course) error
+	ListAll(ctx context.Context, language string) ([]*Course, error)
+	Find(ctx context.Context, id int64) (*Course, error)
+	FindNext(ctx context.Context, id int64) (*Course, error)
 }

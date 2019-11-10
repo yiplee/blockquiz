@@ -12,10 +12,11 @@ import (
 
 type (
 	Config struct {
-		Bot    Bot       `json:"bot,omitempty"`
-		Lesson Lesson    `json:"lesson,omitempty"`
-		I18n   I18n      `json:"i18n,omitempty"`
-		DB     db.Config `json:"db,omitempty"`
+		DB      db.Config `json:"db,omitempty"`
+		Bot     Bot       `json:"bot,omitempty"`
+		Lesson  Lesson    `json:"lesson,omitempty"`
+		I18n    I18n      `json:"i18n,omitempty"`
+		Deliver Deliver   `json:"deliver,omitempty"`
 	}
 
 	Bot struct {
@@ -27,16 +28,24 @@ type (
 	}
 
 	Lesson struct {
+		// 课程文件路径
 		Path string `json:"path,omitempty"`
-		// 在发送问题的时候是否打乱答案的顺序，同样的问题不同用户看到的选项顺序不一样
-		ShuffleChoices bool `json:"shuffle_choices,omitempty"`
+
 		// 答题用的币的 asset id
-		Coin   string          `json:"coin,omitempty"`
-		Amount decimal.Decimal `json:"amount,omitempty"`
+		CoinAssetID string          `json:"coin_asset_id,omitempty"`
+		CoinAmount  decimal.Decimal `json:"coin_amount,omitempty"`
+
+		// 答对奖励
+		RewardAssetID string          `json:"reward_asset_id,omitempty"`
+		RewardAmount  decimal.Decimal `json:"reward_amount,omitempty"`
 	}
 
 	I18n struct {
 		Path string `json:"path,omitempty"`
+	}
+
+	Deliver struct {
+		ButtonColor string `json:"button_color,omitempty"`
 	}
 )
 

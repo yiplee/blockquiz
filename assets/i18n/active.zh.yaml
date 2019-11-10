@@ -1,0 +1,19 @@
+welcome : 欢迎来到 BlcokQuiz!
+select_language: 我是中文用户
+language_switched: 已设置成中文
+usage: |
+  可以用以下命令和机器人交互:
+  > en : 切换到英文
+  > zh : 切换到中文
+  > coin: 申请一些答题币
+  > random: 随机开始一个课程
+  > ? or usage: 查看使用帮助
+show_course: 学习课程
+show_question: 开始答题
+answer_right: 🎉 恭喜你回答正确
+answer_wrong: 回答错误
+answer_wrong_with_right_choice: 回答错误，正确答案是 {{.answer}}
+next_question: 下一题
+finish_cousre: 你已完成课程 {{.title}}，收获颇丰吧 😊
+next_cource: 下一课
+

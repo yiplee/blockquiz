@@ -31,17 +31,27 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		input = transfer.Memo
 	}
 
-	input = strings.ToLower(input)
-	commands := strings.FieldsFunc(input, func(r rune) bool {
+	actions := strings.FieldsFunc(input, func(r rune) bool {
 		return r == ';'
 	})
 
-	for idx, cmd := range commands {
-		if args := strings.Fields(cmd); len(args) > 0 {
-			traceID := uuid.Modify(msg.MessageId, strconv.Itoa(idx))
-			if err := h.handleCommand(ctx, msg.UserId, traceID, args); err != nil {
-				return err
-			}
+	for idx, action := range actions {
+		cmd, err := h.parser.Parse(ctx, action)
+		if err != nil {
+			// action is invalid
+			continue
+		}
+
+		traceID := msg.MessageId
+		if idx > 0 {
+			traceID = uuid.Modify(traceID, strconv.Itoa(idx))
+		}
+
+		cmd.TraceID = traceID
+		cmd.UserID = msg.UserId
+		if err := h.commands.Create(ctx, cmd); err != nil {
+			log.WithError(err).Error("create command")
+			return err
 		}
 	}
 

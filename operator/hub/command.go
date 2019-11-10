@@ -4,16 +4,17 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/spf13/pflag"
 	"github.com/yiplee/blockquiz/core"
 )
 
-func (h *Hub) handleCommand(ctx context.Context, mixinID, traceID string, args []string) error {
+func (h *Hub) parseCommand(ctx context.Context, mixinID, traceID string, args Args) (*core.Command, error) {
 	cmd := core.Command{
 		TraceID: traceID,
 		UserID:  mixinID,
 	}
 
-	switch args[0] {
+	switch args.First() {
 	case core.ActionHelp, "?", "usage", "hi":
 		cmd.Action = core.ActionHelp
 	case core.ActionSwitchChinese:
@@ -23,13 +24,27 @@ func (h *Hub) handleCommand(ctx context.Context, mixinID, traceID string, args [
 	case core.ActionShowLesson:
 		/*
 			> show_lesson 1
-			arg(0) present lesson id
+			arg(1) present lesson id
 		*/
 		cmd.Action = core.ActionShowLesson
-
+		cmd.Course, _ = args.GetInt64(1)
+	case core.ActionShowQuestion:
+		/*
+			> show_question 1
+			arg(1) present lesson id
+		*/
+		cmd.Action = core.ActionShowQuestion
+		cmd.Course, _ = args.GetInt64(1)
+	case core.ActionAnswerQuestion:
+		/*
+			> answer_question 1
+			arg(1) present lesson id
+		*/
+		cmd.Action = core.ActionAnswerQuestion
+		cmd.Course, _ = args.GetInt64(1)
 	}
 
-	return nil
+	return nil, nil
 }
 
 func parseLessonID(arg string) (int64, bool) {
@@ -38,5 +53,10 @@ func parseLessonID(arg string) (int64, bool) {
 		return 0, false
 	}
 
+	pflag.Arg(0)
 	return n, false
+}
+
+func validateCommand(cmd *core.Command) error {
+	return nil
 }
