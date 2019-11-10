@@ -24,8 +24,9 @@ var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "create db tables and add indexes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c := db.MustOpen(cfg.DB)
-		return db.Migrate(c)
+		coon := provideDB()
+		defer coon.Close()
+		return db.Migrate(coon)
 	},
 }
 

@@ -15,7 +15,6 @@ type commandContext struct {
 	user           *core.User
 	course         *core.Course
 	question       *core.Question
-	localizer      *localizer.Localizer
 	conversationID string
 	traceID        string
 }
@@ -50,9 +49,17 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 		c.question, _ = c.course.Question(cmd.Question)
 	}
 
-	c.localizer = localizer.WithLanguage(d.localizer, c.user.Language)
 	c.conversationID = bot.UniqueConversationId(c.user.MixinID, d.config.ClientID)
 	c.traceID = cmd.TraceID
 
 	return c, nil
+}
+
+func (c *commandContext) Localizer() *localizer.Localizer {
+	l := c.d.localizer
+	if c.user.Language != "" {
+		l = localizer.WithLanguage(l, c.user.Language)
+	}
+
+	return l
 }

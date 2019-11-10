@@ -64,7 +64,7 @@ func (c *commandContext) selectLanguage(ctx context.Context, next *core.Command)
 			cmds = append(cmds, next)
 		}
 
-		l := localizer.WithLanguage(c.localizer, lang)
+		l := localizer.WithLanguage(c.Localizer(), lang)
 
 		buttons = append(buttons, c.newButton(
 			l.MustLocalize("select_language"),
@@ -86,7 +86,7 @@ func (c *commandContext) languageSwitched(ctx context.Context) *bot.MessageReque
 		MessageId:      uuid.Modify(c.traceID, "language switched"),
 	}
 
-	data := c.localizer.MustLocalize("language_switched")
+	data := c.Localizer().MustLocalize("language_switched")
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
 }
@@ -99,7 +99,7 @@ func (c *commandContext) showUsage(ctx context.Context) *bot.MessageRequest {
 		MessageId:      uuid.Modify(c.traceID, "show usage"),
 	}
 
-	data := c.localizer.MustLocalize("usage")
+	data := c.Localizer().MustLocalize("usage")
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
 }
@@ -140,7 +140,7 @@ func (c *commandContext) showCourseButtons(ctx context.Context) *bot.MessageRequ
 	course := c.course
 	if course.URL != "" {
 		buttons = append(buttons, c.newButton(
-			c.localizer.MustLocalize("show_course"),
+			c.Localizer().MustLocalize("show_course"),
 			course.URL,
 		))
 	}
@@ -152,7 +152,7 @@ func (c *commandContext) showCourseButtons(ctx context.Context) *bot.MessageRequ
 	}
 
 	buttons = append(buttons, c.newButton(
-		c.localizer.MustLocalize("show_question"),
+		c.Localizer().MustLocalize("show_question"),
 		c.paymentButtonAction(ctx, uuid.New(), showQuestion),
 	))
 
@@ -220,11 +220,11 @@ func (c *commandContext) answerFeedback(ctx context.Context, right bool) *bot.Me
 	var data string
 
 	if right {
-		data = c.localizer.MustLocalize("answer_right")
+		data = c.Localizer().MustLocalize("answer_right")
 	} else {
 		rightChoice := c.question.Choices[c.question.Answer]
 		answer := fmt.Sprintf("%s %s", core.AnswerToString(c.question.Answer), rightChoice)
-		data = c.localizer.MustLocalize("answer_wrong_with_right_choice", "answer", answer)
+		data = c.Localizer().MustLocalize("answer_wrong_with_right_choice", "answer", answer)
 	}
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
@@ -238,7 +238,7 @@ func (c *commandContext) showFinishCourse(ctx context.Context) *bot.MessageReque
 		MessageId:      uuid.Modify(c.traceID, "finish course"),
 	}
 
-	data := c.localizer.MustLocalize("finish_course", "title", c.course.Title)
+	data := c.Localizer().MustLocalize("finish_course", "title", c.course.Title)
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
 }
@@ -257,7 +257,7 @@ func (c *commandContext) showNextCourseButton(ctx context.Context, next *core.Co
 	}
 
 	buttons := []button{c.newButton(
-		c.localizer.MustLocalize("next_course"),
+		c.Localizer().MustLocalize("next_course"),
 		c.paymentButtonAction(ctx, uuid.New(), cmd),
 	)}
 
@@ -281,7 +281,7 @@ func (c *commandContext) showNextQuestionButton(ctx context.Context, nextQuestio
 	}
 
 	buttons := []button{c.newButton(
-		c.localizer.MustLocalize("next_question"),
+		c.Localizer().MustLocalize("next_question"),
 		c.paymentButtonAction(ctx, uuid.New(), cmd),
 	)}
 
