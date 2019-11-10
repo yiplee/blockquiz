@@ -5,7 +5,7 @@ usage: |
   You can interact with the robot with the following command：
   > en : switch to English
   > zh : switch to Chinese
-  > coin: apply for some quiz coin
+  > coin: apply for some quiz coin (at most once per hour)
   > random: start a random course
   > ? or usage: help about blockquiz
 

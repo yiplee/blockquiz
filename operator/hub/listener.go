@@ -7,6 +7,7 @@ import (
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/number"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -27,6 +28,10 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 	case "SYSTEM_ACCOUNT_SNAPSHOT":
 		var transfer bot.TransferView
 		_ = jsoniter.Unmarshal(data, &transfer)
+		if amount := number.Decimal(transfer.Amount); !amount.IsPositive() {
+			return nil
+		}
+
 		input = transfer.Memo
 	}
 

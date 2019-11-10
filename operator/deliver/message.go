@@ -8,6 +8,8 @@ import (
 	"net/url"
 
 	"github.com/MixinNetwork/bot-api-go-client"
+	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
@@ -16,11 +18,12 @@ import (
 func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
 	uri, _ := url.Parse("mixin://pay")
 	query := uri.Query()
-	query.Set("opponent_id", c.d.config.ClientID)
-	query.Set("asset_id", c.d.config.CoinAsset)
+	query.Set("recipient", c.d.config.ClientID)
+	query.Set("asset", c.d.config.CoinAsset)
 	query.Set("amount", c.d.config.CoinAmount.Truncate(8).String())
-	query.Set("trace_id", traceID)
+	query.Set("trace", traceID)
 	query.Set("memo", c.d.parser.Encode(ctx, cmds...))
+	uri.RawQuery = query.Encode()
 	return uri.String()
 }
 
@@ -60,13 +63,16 @@ func (c *commandContext) selectLanguage(ctx context.Context, next *core.Command)
 			cmds = append(cmds, next)
 		}
 
+		l := localizer.WithLanguage(c.localizer, lang)
+
 		buttons = append(buttons, c.newButton(
-			c.localizer.MustLocalize("select_language"),
+			l.MustLocalize("select_language"),
 			c.paymentButtonAction(ctx, uuid.New(), cmds...),
 		))
 	}
 
 	data, _ := jsoniter.Marshal(buttons)
+	logger.FromContext(ctx).WithField("action", "selectLanguage").Debug(string(data))
 	req.Data = base64.StdEncoding.EncodeToString(data)
 	return req
 }

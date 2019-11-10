@@ -35,5 +35,5 @@ func provideWalletService() core.WalletService {
 }
 
 func provideParser() core.CommandParser {
-	return parser.New(false)
+	return parser.New()
 }

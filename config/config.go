@@ -14,7 +14,7 @@ type (
 	Config struct {
 		DB      db.Config `json:"db,omitempty"`
 		Bot     Bot       `json:"bot,omitempty"`
-		Course  Course    `json:"lesson,omitempty"`
+		Course  Course    `json:"course,omitempty"`
 		I18n    I18n      `json:"i18n,omitempty"`
 		Deliver Deliver   `json:"deliver,omitempty"`
 	}

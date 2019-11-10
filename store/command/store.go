@@ -23,12 +23,13 @@ func New(db *db.DB, softDelete bool) core.CommandStore {
 type Command struct {
 	ID        int64      `gorm:"PRIMARY_KEY" json:"id,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-	*core.Command
+
+	core.Command
 }
 
 func (s *store) Create(ctx context.Context, command *core.Command) error {
 	cmd := Command{
-		Command: command,
+		Command: *command,
 	}
 
 	return s.db.Update().Unscoped().Where("trace_id = ?", command.TraceID).FirstOrCreate(&cmd).Error
@@ -54,6 +55,6 @@ func (s *store) Deletes(ctx context.Context, commands []*core.Command) error {
 
 func (s *store) ListPending(ctx context.Context, limit int) ([]*core.Command, error) {
 	var commands []*core.Command
-	err := s.db.View().Limit(limit).Find(&commands).Error
+	err := s.db.View().Where("deleted_at IS NULL").Limit(limit).Find(&commands).Error
 	return commands, err
 }
