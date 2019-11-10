@@ -2,6 +2,9 @@ package core
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type (
@@ -20,6 +23,14 @@ type (
 		Choices []string `json:"choice,omitempty"`
 		Answer  int      `json:"answer,omitempty"` // >= 0
 	}
+
+	CourseStore interface {
+		Add(ctx context.Context, course *Course) error
+		ListAll(ctx context.Context) ([]*Course, error)
+		ListLanguage(ctx context.Context, language string) ([]*Course, error)
+		Find(ctx context.Context, id int64) (*Course, error)
+		FindNext(ctx context.Context, course *Course) (*Course, error)
+	}
 )
 
 func AnswerToString(answer int) string {
@@ -34,9 +45,24 @@ func (lesson *Course) Question(idx int) (*Question, bool) {
 	return nil, false
 }
 
-type CourseStore interface {
-	Add(ctx context.Context, lesson *Course) error
-	ListAll(ctx context.Context, language string) ([]*Course, error)
-	Find(ctx context.Context, id int64) (*Course, error)
-	FindNext(ctx context.Context, id int64) (*Course, error)
+func ValidateCourse(course *Course) error {
+	if !govalidator.IsIn(course.Language, ActionSwitchEnglish, ActionSwitchChinese) {
+		return fmt.Errorf("language must be zh or en")
+	}
+
+	if len(course.Questions) == 0 {
+		return fmt.Errorf("questions is empty")
+	}
+
+	for idx, question := range course.Questions {
+		if len(question.Choices) < 4 {
+			return fmt.Errorf("question %d lack of choice", idx)
+		}
+
+		if question.Answer >= len(question.Choices) {
+			return fmt.Errorf("question %d answer out of range", idx)
+		}
+	}
+
+	return nil
 }

@@ -14,7 +14,7 @@ type (
 	Config struct {
 		DB      db.Config `json:"db,omitempty"`
 		Bot     Bot       `json:"bot,omitempty"`
-		Lesson  Lesson    `json:"lesson,omitempty"`
+		Course  Course    `json:"lesson,omitempty"`
 		I18n    I18n      `json:"i18n,omitempty"`
 		Deliver Deliver   `json:"deliver,omitempty"`
 	}
@@ -27,7 +27,7 @@ type (
 		Pin        string `json:"pin,omitempty"`
 	}
 
-	Lesson struct {
+	Course struct {
 		// 课程文件路径
 		Path string `json:"path,omitempty"`
 

@@ -213,7 +213,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.
 			requests = append(requests, c.showNextQuestionButton(ctx, cmd.Question+1))
 		} else {
 			requests = append(requests, c.showFinishCourse(ctx))
-			if nextCourse, err := d.courses.FindNext(ctx, c.course.ID); err == nil {
+			if nextCourse, err := d.courses.FindNext(ctx, c.course); err == nil {
 				requests = append(requests, c.showNextCourseButton(ctx, nextCourse))
 			}
 		}
@@ -225,7 +225,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.
 }
 
 func (d *Deliver) pickRandomCourse(ctx context.Context, user *core.User) (*core.Course, error) {
-	list, err := d.courses.ListAll(ctx, user.Language)
+	list, err := d.courses.ListLanguage(ctx, user.Language)
 	if err != nil {
 		return nil, err
 	}
