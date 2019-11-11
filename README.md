@@ -1,6 +1,7 @@
 ## BlockQuiz
 
-[Usage](./pages/usage.html)
+[Usage](./docs/usage.md)
+
 [API Doc](./docs/api.md)
 
 ### Build
