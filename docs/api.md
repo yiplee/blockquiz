@@ -136,7 +136,19 @@ POST /task/:id/cancel
 }
 ```
 
-## State
+## Error
+
+```json5
+{
+  "error": {
+    "code": 10001,
+    "msg": "invalid parameters",
+    "hint": "Object.language: enhh does not validate as in(en|zh): invalid parameters (10001)" // debug mode 才有
+  }
+}
+```
+
+## Task State
 
 | state | description |
 |:------:|:------------:|
