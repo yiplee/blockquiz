@@ -58,9 +58,11 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 		}
 		err = d.users.Create(ctx, c.user)
 
-		// new user and from outside
-		if err := d.createConversation(ctx, cmd.UserID); err != nil {
-			return nil, fmt.Errorf("create conversation failed: %w", err)
+		// new user and from api
+		if cmd.Source == core.CommandSourceAPI {
+			if err := d.createConversation(ctx, cmd.UserID); err != nil {
+				return nil, fmt.Errorf("create conversation failed: %w", err)
+			}
 		}
 	}
 

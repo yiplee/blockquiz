@@ -18,7 +18,7 @@ const (
 const (
 	CommandSourcePlainText = "plain_text"
 	CommandSourceSnapshot  = "snapshot"
-	CommandSourceOutside   = "outside" // api
+	CommandSourceAPI       = "api" // api
 )
 
 type (

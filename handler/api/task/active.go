@@ -33,7 +33,7 @@ func HandleActive(tasks core.TaskStore, courses core.CourseStore, commands core.
 			TraceID: uuid.New(),
 			UserID:  task.UserID,
 			Action:  core.ActionShowCourse,
-			Source:  core.CommandSourceOutside,
+			Source:  core.CommandSourceAPI,
 		}
 
 		if err := commands.Create(ctx, cmd); err != nil {
