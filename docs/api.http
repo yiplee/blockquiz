@@ -11,13 +11,13 @@ Content-Type: application/json
 }
 
 ### Active Task
-POST {{host}}/task/1000/active
+POST {{host}}/task/32/active
 
 ### Find Task
-GET {{host}}/task/26
+GET {{host}}/task/32
 
 ### Cancel Task
-POST {{host}}/task/26/cancel
+POST {{host}}/task/30/cancel
 
 ###
 

@@ -29,8 +29,8 @@ func parseCommand(args Args) (*core.Command, error) {
 		cmd.Answer, _ = args.GetInt(1)
 	default:
 		// a - z 算答题
-		if runes := []byte(args.First()); len(runes) == 1 {
-			if r := runes[0]; r >= 'a' && r <= 'z' {
+		if runes := []byte(args.First()); len(runes) == 1 && len(args) == 1 {
+			if r := runes[0]; r >= 'a' && r <= 'd' {
 				cmd.Action = core.ActionAnswerQuestion
 				cmd.Answer = int(r - 'a')
 			}
