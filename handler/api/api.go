@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
 	"github.com/yiplee/blockquiz/core"
+	"github.com/yiplee/blockquiz/handler/api/hc"
 	"github.com/yiplee/blockquiz/handler/api/task"
 )
 
@@ -36,6 +37,8 @@ func (s Server) Handle() http.Handler {
 		logger.Handler(),
 	)
 
+	router.GET("/hc", hc.Handle())
+
 	router.POST(
 		"/task",
 		task.HandleCreate(s.Tasks, s.Courses),
@@ -43,7 +46,7 @@ func (s Server) Handle() http.Handler {
 
 	router.POST(
 		"/task/:id/active",
-		task.TaskRequired(s.Tasks),
+		task.Required(s.Tasks),
 		task.HandleActive(
 			s.Tasks,
 			s.Courses,
@@ -53,8 +56,14 @@ func (s Server) Handle() http.Handler {
 
 	router.GET(
 		"/task/:id",
-		task.TaskRequired(s.Tasks),
+		task.Required(s.Tasks),
 		task.HandleFind(s.Courses),
+	)
+
+	router.POST(
+		"/task/:id/cancel",
+		task.Required(s.Tasks),
+		task.HandleCancel(s.Tasks),
 	)
 
 	return router

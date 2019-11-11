@@ -1,0 +1,23 @@
+### hc
+GET {{host}}/hc
+
+### Create Task
+POST {{host}}/task
+Content-Type: application/json
+
+{
+  "language": "en",
+  "user_id": "8017d200-7870-4b82-b53f-74bae1d2dad7"
+}
+
+### Active Task
+POST {{host}}/task/26/active
+
+### Find Task
+GET {{host}}/task/26
+
+### Cancel Task
+POST {{host}}/task/26/cancel
+
+###
+

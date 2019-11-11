@@ -11,7 +11,7 @@ import (
 	"github.com/yiplee/blockquiz/store"
 )
 
-func TaskRequired(tasks core.TaskStore) gin.HandlerFunc {
+func Required(tasks core.TaskStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		log := logger.FromContext(ctx)
