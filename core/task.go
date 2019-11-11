@@ -15,18 +15,17 @@ const (
 
 type (
 	Task struct {
-		ID        int64     `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-		CreatedAt time.Time `json:"created_at,omitempty"`
-		UpdatedAt time.Time `json:"updated_at,omitempty"`
-		Version   int64     `json:"version,omitempty"`
-		Language  string    `gorm:"size:24" json:"language,omitempty"`
-		UserID    string    `gorm:"size:36" json:"user_id,omitempty"`
-		Creator   string    `gorm:"size:36" json:"creator,omitempty"`
-		Info      string    `gorm:"size:512" json:"info,omitempty"`
-		Course    int64     `json:"course,omitempty"`
-		Question  int       `json:"question,omitempty"`
-		State     string    `gorm:"size:36" json:"state,omitempty"`
-		// 来自 luckycoin 的强制性任务，一旦答错了，一小时后才能继续答题
+		ID         int64     `gorm:"PRIMARY_KEY" json:"id,omitempty"`
+		CreatedAt  time.Time `json:"created_at,omitempty"`
+		UpdatedAt  time.Time `json:"updated_at,omitempty"`
+		Version    int64     `json:"version,omitempty"`
+		Language   string    `gorm:"size:24" json:"language,omitempty"`
+		UserID     string    `gorm:"size:36" json:"user_id,omitempty"`
+		Creator    string    `gorm:"size:36" json:"creator,omitempty"`
+		Info       string    `gorm:"size:512" json:"info,omitempty"`
+		Course     int64     `json:"course,omitempty"`
+		Question   int       `json:"question,omitempty"`
+		State      string    `gorm:"size:36" json:"state,omitempty"`
 		BlockUntil time.Time `json:"block_until,omitempty"`
 	}
 
