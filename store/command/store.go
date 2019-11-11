@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"time"
 
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/db"
@@ -20,19 +19,8 @@ func New(db *db.DB, softDelete bool) core.CommandStore {
 	}
 }
 
-type Command struct {
-	ID        int64      `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-
-	core.Command
-}
-
 func (s *store) Create(ctx context.Context, command *core.Command) error {
-	cmd := Command{
-		Command: *command,
-	}
-
-	return s.db.Update().Unscoped().Where("trace_id = ?", command.TraceID).FirstOrCreate(&cmd).Error
+	return s.db.Update().Unscoped().Where("trace_id = ?", command.TraceID).FirstOrCreate(command).Error
 }
 
 func (s *store) Delete(ctx context.Context, command *core.Command) error {
@@ -45,12 +33,12 @@ func (s *store) Deletes(ctx context.Context, commands []*core.Command) error {
 		tx = tx.Unscoped()
 	}
 
-	traceIDs := make([]string, 0, len(commands))
+	ids := make([]int64, 0, len(commands))
 	for _, cmd := range commands {
-		traceIDs = append(traceIDs, cmd.TraceID)
+		ids = append(ids, cmd.ID)
 	}
 
-	return tx.Where("trace_id in (?)", traceIDs).Delete(Command{}).Error
+	return tx.Where("id in (?)", ids).Delete(core.Command{}).Error
 }
 
 func (s *store) ListPending(ctx context.Context, limit int) ([]*core.Command, error) {

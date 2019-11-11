@@ -9,22 +9,21 @@ const (
 	ActionUsage          = "usage"           // 帮助
 	ActionSwitchEnglish  = "en"              // 切换到英文
 	ActionSwitchChinese  = "zh"              // 切换到中文
-	ActionShowCourse     = "show_course"     // 开始课程
 	ActionRandomCourse   = "random"          // 随机课程
+	ActionShowCourse     = "show_course"     // 开始课程
 	ActionShowQuestion   = "show_question"   // 开始答题
 	ActionAnswerQuestion = "answer_question" // 答题
-	ActionRequestCoin    = "coin"            // 请求答题币
 )
 
 type (
 	Command struct {
-		TraceID   string    `gorm:"size:36" json:"trace_id,omitempty"`
-		CreatedAt time.Time `json:"created_at,omitempty"`
-		UserID    string    `gorm:"size:36" json:"user_id,omitempty"`
-		Action    string    `gorm:"size:256" json:"action,omitempty"`
-		Course    int64     `json:"course,omitempty"`
-		Question  int       `json:"question_number,omitempty"`
-		Answer    int       `json:"answer,omitempty"`
+		ID        int64      `gorm:"PRIMARY_KEY" json:"id,omitempty"`
+		CreatedAt time.Time  `json:"created_at,omitempty"`
+		DeletedAt *time.Time `json:"deleted_at,omitempty"`
+		TraceID   string     `gorm:"size:36" json:"trace_id,omitempty"`
+		UserID    string     `gorm:"size:36" json:"user_id,omitempty"`
+		Action    string     `gorm:"size:256" json:"action,omitempty"`
+		Answer    int        `json:"answer,omitempty"`
 	}
 
 	CommandStore interface {

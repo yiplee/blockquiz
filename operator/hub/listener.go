@@ -23,10 +23,10 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 	}
 
 	var input string
-	switch msg.Category {
-	case "PLAIN_TEXT":
+	switch {
+	case msg.Category == "PLAIN_TEXT":
 		input = string(data)
-	case "SYSTEM_ACCOUNT_SNAPSHOT":
+	case msg.Category == "SYSTEM_ACCOUNT_SNAPSHOT" && h.config.TransferCommand:
 		var transfer bot.TransferView
 		_ = jsoniter.Unmarshal(data, &transfer)
 		if amount := number.Decimal(transfer.Amount); !amount.IsPositive() {
@@ -34,6 +34,8 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		}
 
 		input = strings.ReplaceAll(transfer.Memo, "+", " ")
+	default:
+		return nil
 	}
 
 	cmds, err := h.parser.Parse(ctx, input)

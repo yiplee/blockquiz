@@ -8,10 +8,13 @@ import (
 	"github.com/yiplee/blockquiz/core"
 )
 
-type commandParser struct{}
+type commandParser struct {
+	// 一条消息里面最多处理多少 cmd
+	partLimit int
+}
 
 func New() core.CommandParser {
-	return &commandParser{}
+	return &commandParser{partLimit: 3}
 }
 
 func (c *commandParser) Parse(ctx context.Context, input string) ([]*core.Command, error) {
@@ -22,6 +25,10 @@ func (c *commandParser) Parse(ctx context.Context, input string) ([]*core.Comman
 	parts := strings.FieldsFunc(input, func(r rune) bool {
 		return r == ';'
 	})
+
+	if len(parts) > c.partLimit {
+		parts = parts[:c.partLimit]
+	}
 
 	for _, part := range parts {
 		if args := newArgs(part); len(args) > 0 {

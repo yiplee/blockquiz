@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"net/url"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
@@ -15,17 +14,21 @@ import (
 	"github.com/yiplee/blockquiz/core"
 )
 
-func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
-	uri, _ := url.Parse("mixin://pay")
-	query := uri.Query()
-	query.Set("recipient", c.d.config.ClientID)
-	query.Set("asset", c.d.config.CoinAsset)
-	query.Set("amount", c.d.config.CoinAmount.Truncate(8).String())
-	query.Set("trace", traceID)
-	memo := c.d.parser.Encode(ctx, cmds...)
-	query.Set("memo", memo)
-	uri.RawQuery = query.Encode()
-	return uri.String()
+// func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
+// 	uri, _ := url.Parse("mixin://pay")
+// 	query := uri.Query()
+// 	query.Set("recipient", c.d.config.ClientID)
+// 	query.Set("asset", c.d.config.CoinAsset)
+// 	query.Set("amount", c.d.config.CoinAmount.Truncate(8).String())
+// 	query.Set("trace", traceID)
+// 	memo := c.d.parser.Encode(ctx, cmds...)
+// 	query.Set("memo", memo)
+// 	uri.RawQuery = query.Encode()
+// 	return uri.String()
+// }
+
+func (c *commandContext) inputButtonAction(ctx context.Context, cmds ...*core.Command) string {
+	return fmt.Sprintf("input:%s", c.d.parser.Encode(ctx, cmds...))
 }
 
 type button struct {
@@ -68,7 +71,7 @@ func (c *commandContext) selectLanguage(ctx context.Context, next *core.Command)
 
 		buttons = append(buttons, c.newButton(
 			l.MustLocalize("select_language"),
-			c.paymentButtonAction(ctx, uuid.New(), cmds...),
+			c.inputButtonAction(ctx, cmds...),
 		))
 	}
 
@@ -115,8 +118,15 @@ func (c *commandContext) showCourseContent(ctx context.Context) *bot.MessageRequ
 	course := c.course
 
 	var buf bytes.Buffer
-	fmt.Fprintln(&buf, c.course.Title)
-	fmt.Fprintln(&buf) // 换行
+	if c.task.Info != "" {
+		fmt.Fprintln(&buf, c.task.Info)
+		fmt.Fprintln(&buf) // 换行
+	}
+
+	if c.course.Title != "" {
+		fmt.Fprintln(&buf, c.course.Title)
+		fmt.Fprintln(&buf) // 换行
+	}
 
 	if course.URL == "" {
 		fmt.Fprintln(&buf, course.Content)
@@ -146,14 +156,12 @@ func (c *commandContext) showCourseButtons(ctx context.Context) *bot.MessageRequ
 	}
 
 	showQuestion := &core.Command{
-		Action:   core.ActionShowQuestion,
-		Course:   course.ID,
-		Question: 0,
+		Action: core.ActionShowQuestion,
 	}
 
 	buttons = append(buttons, c.newButton(
 		c.Localizer().MustLocalize("show_question"),
-		c.paymentButtonAction(ctx, uuid.New(), showQuestion),
+		c.inputButtonAction(ctx, showQuestion),
 	))
 
 	data, _ := jsoniter.Marshal(buttons)
@@ -189,17 +197,15 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 		MessageId:      uuid.Modify(c.traceID, "show question buttons"),
 	}
 
-	buttons := make([]button, len(c.question.Choices[:2]))
+	buttons := make([]button, len(c.question.Choices))
 	for idx := range buttons {
 		cmd := &core.Command{
-			Action:   core.ActionAnswerQuestion,
-			Course:   c.course.ID,
-			Question: c.cmd.Question,
-			Answer:   idx,
+			Action: core.ActionAnswerQuestion,
+			Answer: idx,
 		}
 		buttons[idx] = c.newButton(
 			core.AnswerToString(idx),
-			c.paymentButtonAction(ctx, req.MessageId, cmd),
+			c.inputButtonAction(ctx, cmd),
 		)
 	}
 
@@ -209,7 +215,7 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 	return req
 }
 
-func (c *commandContext) answerFeedback(ctx context.Context, right bool) *bot.MessageRequest {
+func (c *commandContext) showAnswerFeedback(ctx context.Context, right bool) *bot.MessageRequest {
 	req := &bot.MessageRequest{
 		Category:       "PLAIN_TEXT",
 		RecipientId:    c.user.MixinID,
@@ -222,9 +228,11 @@ func (c *commandContext) answerFeedback(ctx context.Context, right bool) *bot.Me
 	if right {
 		data = c.Localizer().MustLocalize("answer_right")
 	} else {
-		rightChoice := c.question.Choices[c.question.Answer]
-		answer := fmt.Sprintf("%s %s", core.AnswerToString(c.question.Answer), rightChoice)
-		data = c.Localizer().MustLocalize("answer_wrong_with_right_choice", "answer", answer)
+		if blocked, dur := c.task.IsBlocked(); blocked {
+			data = c.Localizer().MustLocalize("answer_wrong_with_wait", "wait", dur.String())
+		} else {
+			data = c.Localizer().MustLocalize("answer_wrong")
+		}
 	}
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
@@ -253,12 +261,11 @@ func (c *commandContext) showNextCourseButton(ctx context.Context, next *core.Co
 
 	cmd := &core.Command{
 		Action: core.ActionShowCourse,
-		Course: next.ID,
 	}
 
 	buttons := []button{c.newButton(
 		c.Localizer().MustLocalize("next_course"),
-		c.paymentButtonAction(ctx, uuid.New(), cmd),
+		c.inputButtonAction(ctx, cmd),
 	)}
 
 	data, _ := jsoniter.Marshal(buttons)
@@ -275,14 +282,12 @@ func (c *commandContext) showNextQuestionButton(ctx context.Context, nextQuestio
 	}
 
 	cmd := &core.Command{
-		Action:   core.ActionShowQuestion,
-		Course:   c.course.ID,
-		Question: nextQuestion,
+		Action: core.ActionShowQuestion,
 	}
 
 	buttons := []button{c.newButton(
 		c.Localizer().MustLocalize("next_question"),
-		c.paymentButtonAction(ctx, uuid.New(), cmd),
+		c.inputButtonAction(ctx, cmd),
 	)}
 
 	data, _ := jsoniter.Marshal(buttons)

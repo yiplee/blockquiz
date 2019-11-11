@@ -34,6 +34,7 @@ func runEngine(ctx context.Context) error {
 	wallets := provideWalletStore(db)
 	walletz := provideWalletService()
 	courses := provideCourseStore()
+	tasks := provideTaskStore(db)
 	localizer := provideLocalizer()
 
 	g.Go(func() error {
@@ -58,6 +59,7 @@ func runEngine(ctx context.Context) error {
 			commandParser,
 			courses,
 			wallets,
+			tasks,
 			localizer,
 			deliver.Config{
 				ClientID:    cfg.Bot.ClientID,

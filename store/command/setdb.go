@@ -1,6 +1,7 @@
 package command
 
 import (
+	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/db"
 )
 
@@ -9,9 +10,9 @@ func init() {
 }
 
 func setCommand(db *db.DB) error {
-	tx := db.Update().Model(Command{})
+	tx := db.Update().Model(core.Command{})
 
-	if err := tx.AutoMigrate(Command{}).Error; err != nil {
+	if err := tx.AutoMigrate(core.Command{}).Error; err != nil {
 		return err
 	}
 
