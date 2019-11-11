@@ -177,7 +177,10 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 		MessageId:      uuid.Modify(c.traceID, "show question content"),
 	}
 
+	task := c.task
+
 	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "%d/%d ", task.Question+1, len(c.course.Questions))
 	fmt.Fprintln(&buf, c.question.Content)
 	fmt.Fprintln(&buf)
 	for idx, choice := range c.question.Choices {

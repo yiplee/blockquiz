@@ -56,7 +56,7 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 
 	c.conversationID = bot.UniqueConversationId(c.user.MixinID, d.config.ClientID)
 
-	if task, err := d.tasks.FindUser(ctx, c.user.MixinID); err == nil {
+	if task, err := d.tasks.FindUser(ctx, c.user.MixinID); err == nil && task.IsActive() {
 		if course, err := d.courses.Find(ctx, task.Course); err == nil {
 			c.task = task
 			c.course = course
@@ -80,6 +80,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	case core.ActionSwitchChinese, core.ActionSwitchEnglish:
 		if cmd.Action != c.user.Language {
 			c.user.Language = cmd.Action
+			c.language = c.user.Language
 			if err := c.d.users.Update(ctx, c.user); err != nil {
 				return nil, fmt.Errorf("update user failed: %w", err)
 			}
@@ -150,7 +151,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 			}
 		} else {
 			if blocked, _ := task.IsBlocked(); !blocked && task.IsMandatory() {
-				task.BlockUntil = time.Now().Add(time.Hour)
+				task.BlockUntil = time.Now().Add(c.d.config.BlockDuration)
 			}
 
 			requests = append(requests, c.showAnswerFeedback(ctx, false))

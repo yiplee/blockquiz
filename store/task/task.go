@@ -28,6 +28,7 @@ func toUpdateParams(task *core.Task) map[string]interface{} {
 	return map[string]interface{}{
 		"state":       task.State,
 		"block_until": task.BlockUntil,
+		"question":    task.Question,
 	}
 }
 

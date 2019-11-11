@@ -62,12 +62,13 @@ func runEngine(ctx context.Context) error {
 			tasks,
 			localizer,
 			deliver.Config{
-				ClientID:    cfg.Bot.ClientID,
-				SessionID:   cfg.Bot.SessionID,
-				SessionKey:  cfg.Bot.SessionKey,
-				CoinAsset:   cfg.Course.CoinAsset,
-				CoinAmount:  cfg.Course.CoinAmount,
-				ButtonColor: cfg.Deliver.ButtonColor,
+				ClientID:      cfg.Bot.ClientID,
+				SessionID:     cfg.Bot.SessionID,
+				SessionKey:    cfg.Bot.SessionKey,
+				CoinAsset:     cfg.Course.CoinAsset,
+				CoinAmount:    cfg.Course.CoinAmount,
+				ButtonColor:   cfg.Deliver.ButtonColor,
+				BlockDuration: time.Hour,
 			},
 		)
 

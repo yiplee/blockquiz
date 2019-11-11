@@ -148,7 +148,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	}
 
 	// update task
-	if task := c.task; task != nil && task.IsActive() {
+	if task := c.task; task != nil {
 		if err := d.tasks.UpdateVersion(ctx, task, cmd.ID); err != nil {
 			return err
 		}
