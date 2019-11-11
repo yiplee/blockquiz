@@ -48,6 +48,12 @@ func (t *taskStore) UpdateVersion(ctx context.Context, task *core.Task, version 
 	return nil
 }
 
+func (t *taskStore) Find(ctx context.Context, id int64) (*core.Task, error) {
+	var task core.Task
+	err := t.db.View().Where("id = ?", id).First(&task).Error
+	return &task, err
+}
+
 func (t *taskStore) FindUser(ctx context.Context, userID string) (*core.Task, error) {
 	var task core.Task
 	err := t.db.View().Where("user_id = ?", userID).Last(&task).Error

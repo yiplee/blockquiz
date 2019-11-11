@@ -34,6 +34,7 @@ type (
 		Create(ctx context.Context, task *Task) error
 		Update(ctx context.Context, task *Task) error
 		UpdateVersion(ctx context.Context, task *Task, version int64) error
+		Find(ctx context.Context, id int64) (*Task, error)
 		// FindUser return user's last task
 		FindUser(ctx context.Context, userID string) (*Task, error)
 	}
