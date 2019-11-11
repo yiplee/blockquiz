@@ -15,6 +15,12 @@ const (
 	ActionAnswerQuestion = "answer_question" // 答题
 )
 
+const (
+	CommandSourcePlainText = "plain_text"
+	CommandSourceSnapshot  = "snapshot"
+	CommandSourceOutside   = "outside" // api
+)
+
 type (
 	Command struct {
 		ID        int64      `gorm:"PRIMARY_KEY" json:"id,omitempty"`
@@ -24,6 +30,7 @@ type (
 		UserID    string     `gorm:"size:36" json:"user_id,omitempty"`
 		Action    string     `gorm:"size:256" json:"action,omitempty"`
 		Answer    int        `json:"answer,omitempty"`
+		Source    string     `json:"source,omitempty"`
 	}
 
 	CommandStore interface {

@@ -11,6 +11,7 @@ import (
 	"github.com/fox-one/pkg/number"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/yiplee/blockquiz/core"
 )
 
 func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string) error {
@@ -22,10 +23,15 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		return nil
 	}
 
-	var input string
+	var (
+		input  string
+		source string
+	)
+
 	switch {
 	case msg.Category == "PLAIN_TEXT":
 		input = string(data)
+		source = core.CommandSourcePlainText
 	case msg.Category == "SYSTEM_ACCOUNT_SNAPSHOT" && h.config.TransferCommand:
 		var transfer bot.TransferView
 		_ = jsoniter.Unmarshal(data, &transfer)
@@ -34,6 +40,7 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		}
 
 		input = strings.ReplaceAll(transfer.Memo, "+", " ")
+		source = core.CommandSourceSnapshot
 	default:
 		return nil
 	}
@@ -51,6 +58,7 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 
 		cmd.TraceID = traceID
 		cmd.UserID = msg.UserId
+		cmd.Source = source
 		if err := h.commands.Create(ctx, cmd); err != nil {
 			log.WithError(err).Error("create command")
 			return err

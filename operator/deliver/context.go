@@ -32,6 +32,17 @@ func (c *commandContext) bindTask(task *core.Task, course *core.Course) {
 	return
 }
 
+func (d *Deliver) createConversation(ctx context.Context, participantId string) error {
+	conversationID := bot.UniqueConversationId(participantId, d.config.ClientID)
+	participants := []bot.Participant{{
+		UserId: participantId,
+		Role:   "",
+	}}
+
+	_, err := bot.CreateConversation(ctx, "CONTACT", conversationID, participants, d.config.ClientID, d.config.SessionID, d.config.SessionKey)
+	return err
+}
+
 func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*commandContext, error) {
 	c := &commandContext{
 		d:       d,
@@ -46,6 +57,11 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 			MixinID: cmd.UserID,
 		}
 		err = d.users.Create(ctx, c.user)
+
+		// new user and from outside
+		if err := d.createConversation(ctx, cmd.UserID); err != nil {
+			return nil, fmt.Errorf("create conversation failed: %w", err)
+		}
 	}
 
 	if err != nil {
@@ -53,7 +69,6 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 	}
 
 	c.language = c.user.Language
-
 	c.conversationID = bot.UniqueConversationId(c.user.MixinID, d.config.ClientID)
 
 	if task, err := d.tasks.FindUser(ctx, c.user.MixinID); err == nil && task.IsActive() {
