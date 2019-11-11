@@ -12,7 +12,7 @@ import (
 	"github.com/yiplee/blockquiz/handler/api/view"
 )
 
-const creator = "lucky coin"
+const creator = "api"
 
 func HandleCreate(tasks core.TaskStore, courses core.CourseStore) gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -7,11 +7,11 @@ Content-Type: application/json
 
 {
   "language": "zh",
-  "user_id": "8017d200-7870-4b82-b53f-74bae1d2dad7"
+  "user_id": "cd345a58-2c40-4519-9533-d50a1e1b8238"
 }
 
 ### Active Task
-POST {{host}}/task/66/active
+POST {{host}}/task/70/active
 
 ### Find Task
 GET {{host}}/task/66
