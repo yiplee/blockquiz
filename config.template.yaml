@@ -1,0 +1,33 @@
+db:
+  dialect: mysql # postgresql, mysql , sqlite
+  host: localhost
+  port: 3306
+  user: root
+  password: password
+  database: quiz
+#  debug: true
+
+bot:
+  client_id: 40ae718f-3d6b-4cb1-84dd-7716c9f37b47
+  session_id: 3b9bfa5b-9298-4562-8d09-56dae91bcc76
+  session_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIICXAIBAAKBgQCX2jsGHVm10wPNkKbB4m/aY/FRYFlK0ceOu1wPK7dNKowMh+L7
+    /36GX0wDVgqMftkxxjukbzeQVRjfG11KfL67Ll0gsaJe4TU4d3iRCcIr4bi5gtR2
+    X4kRt0qXjxxtu14Pqv5dHoLK/NSoWyQaz94lI4mkmsOZMV6HnvwoQuzc/wIDAQAB
+    7Ta/se+PAkEAnwIA4w4eNZNTfIBZfg2GRp2IC0t7HlzVCDlEzKlDGU1GWm/yaBJl
+    OZtlC+09V8+nU007Ve21TVlHO31b3pKDkQJBAIJnbFon7hwdUmd5nVomtrNlA6ZA
+    J36HKXz3uelG59wjkm3b8ewrUgIhkxWbvoAeZDeFL3kjc7mm/+EB8LsNYTcCQGUc
+    9gls8eLp074pND+HRCrlhByCnEE7kTCQkmJ/BC8zx5g89e4ePIZ8fa4u58JORz4e
+    r6u95HvSWQzIc8I+czECQC9Wqo1bmqTRA3UUEDv0JyKzhfM5rCaunSDGVNkNmqQM
+    sjwq3DpuNM77X9pDiTHVUXl9nywCYt0kLFW9DpMPXCk=
+    -----END RSA PRIVATE KEY-----
+
+course:
+  path: ./assets/courses # 课程文件存放路径
+
+i18n:
+  path: ./assets/i18n # 国际化文件存放路径
+
+deliver:
+  button_color: "#11A7F7"
