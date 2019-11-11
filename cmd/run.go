@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/yiplee/blockquiz/operator/cashier"
 	"github.com/yiplee/blockquiz/operator/deliver"
 	"github.com/yiplee/blockquiz/operator/hub"
 	"golang.org/x/sync/errgroup"
@@ -32,7 +31,6 @@ func runEngine(ctx context.Context) error {
 	commands := provideCommandStore(db)
 	commandParser := provideParser()
 	wallets := provideWalletStore(db)
-	walletz := provideWalletService()
 	courses := provideCourseStore()
 	tasks := provideTaskStore(db)
 	localizer := provideLocalizer()
@@ -45,11 +43,6 @@ func runEngine(ctx context.Context) error {
 		})
 
 		return h.Run(ctx)
-	})
-
-	g.Go(func() error {
-		c := cashier.New(wallets, walletz)
-		return c.Work(ctx, 300*time.Millisecond)
 	})
 
 	g.Go(func() error {
