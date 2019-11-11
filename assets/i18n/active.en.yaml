@@ -14,7 +14,7 @@ show_course: Learning Course
 show_question: Start answering questions
 answer_right: 🎉 Congratulations, you answered correctly.
 answer_wrong: The answer is wrong.
-answer_wrong_with_wait: The answer is wrong, please retry after {{.wait}}.
+answer_wrong_with_wait: The answer is wrong, please retry after {{.wait}} minutes.
 answer_wrong_with_right_choice: The answer is wrong, the correct answer is {{.answer}}.
 next_question: Next question
 finish_course: You have completed the course {{.title}}.

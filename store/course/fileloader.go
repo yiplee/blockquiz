@@ -85,33 +85,27 @@ func (s *fileLoader) insert(course *core.Course) error {
 	return nil
 }
 
-func (s *fileLoader) list() []*core.Course {
-	return s.courses[:]
-}
-
 func (s *fileLoader) Add(ctx context.Context, course *core.Course) error {
 	panic("adding course runtime is forbidden")
 }
 
 func (s *fileLoader) ListAll(ctx context.Context) ([]*core.Course, error) {
-	return s.list(), nil
+	return s.courses[:], nil
 }
 
 func (s *fileLoader) ListLanguage(ctx context.Context, language string) ([]*core.Course, error) {
-	courses := s.list()
-	idx := 0
-	for _, course := range courses {
+	courses := make([]*core.Course, 0, len(s.courses))
+	for _, course := range s.courses {
 		if course.Language == language {
-			courses[idx] = course
-			idx++
+			courses = append(courses, course)
 		}
 	}
 
-	return courses[:idx], nil
+	return courses, nil
 }
 
 func (s *fileLoader) Find(ctx context.Context, id int64) (*core.Course, error) {
-	courses := s.list()
+	courses := s.courses
 	idx := sort.Search(len(courses), func(i int) bool {
 		return courses[i].ID >= id
 	})

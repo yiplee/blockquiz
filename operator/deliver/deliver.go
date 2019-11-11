@@ -104,6 +104,13 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 		core.ActionRandomCourse,
 	)
 
+	log := logger.FromContext(ctx).WithField("user_id", c.user.MixinID)
+	if c.task != nil {
+		log = log.WithField("task", c.task.ID).WithField("course", c.course.ID)
+	}
+
+	log.Debugf("pre handle cmd %s", cmd.Action)
+
 	if task := c.task; task == nil || task.IsDone() || task.IsPending() {
 		if isTaskOperation {
 			cmd.Action = core.ActionUsage
@@ -125,6 +132,8 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 			}
 		}
 	}
+
+	log.Debugf("handle cmd %s", cmd.Action)
 
 	requests, err := c.handleCommand(ctx, cmd)
 	if err != nil {

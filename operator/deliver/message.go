@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
@@ -232,7 +233,11 @@ func (c *commandContext) showAnswerFeedback(ctx context.Context, right bool) *bo
 		data = c.Localizer().MustLocalize("answer_right")
 	} else {
 		if blocked, dur := c.task.IsBlocked(); blocked {
-			data = c.Localizer().MustLocalize("answer_wrong_with_wait", "wait", dur.String())
+			minutes := int(dur.Minutes())
+			if minutes == 0 {
+				minutes = 1
+			}
+			data = c.Localizer().MustLocalize("answer_wrong_with_wait", "wait", strconv.Itoa(minutes))
 		} else {
 			data = c.Localizer().MustLocalize("answer_wrong")
 		}
