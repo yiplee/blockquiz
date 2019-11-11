@@ -37,9 +37,9 @@ func (h *Hub) Run(ctx context.Context) error {
 	log := logger.FromContext(ctx).WithField("operator", "hub")
 	ctx = logger.WithContext(ctx, log)
 
-	blaze := bot.NewBlazeClient(h.config.ClientID, h.config.SessionID, h.config.SessionKey)
-
 	for {
+		blaze := bot.NewBlazeClient(h.config.ClientID, h.config.SessionID, h.config.SessionKey)
+
 		if err := blaze.Loop(ctx, h); err != nil {
 			log.WithError(err).Error("blaze loop")
 
