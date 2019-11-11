@@ -45,7 +45,8 @@ type (
 	}
 
 	Deliver struct {
-		ButtonColor string `json:"button_color,omitempty"`
+		ButtonColor   string `json:"button_color,omitempty"`
+		BlockDuration int64  `json:"block_duration,omitempty"` // 秒
 	}
 )
 
@@ -71,5 +72,16 @@ func Load(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("unmarshal config data failed: %w", err)
 	}
 
+	defaultConfig(&cfg)
 	return &cfg, nil
+}
+
+func defaultConfig(cfg *Config) {
+	if cfg.Deliver.BlockDuration == 0 {
+		cfg.Deliver.BlockDuration = 60*60 + 1
+	}
+
+	if cfg.Deliver.ButtonColor == "" {
+		cfg.Deliver.ButtonColor = "#11A7F7"
+	}
 }

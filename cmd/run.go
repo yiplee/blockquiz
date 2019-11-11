@@ -61,7 +61,7 @@ func runEngine(ctx context.Context) error {
 				CoinAsset:     cfg.Course.CoinAsset,
 				CoinAmount:    cfg.Course.CoinAmount,
 				ButtonColor:   cfg.Deliver.ButtonColor,
-				BlockDuration: time.Hour,
+				BlockDuration: time.Duration(cfg.Deliver.BlockDuration) * time.Second,
 			},
 		)
 
