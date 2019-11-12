@@ -21,14 +21,12 @@ type commandContext struct {
 	question       *core.Question
 	conversationID string
 	traceID        string
-	language       string
 }
 
 func (c *commandContext) bindTask(task *core.Task, course *core.Course) {
 	c.task = task
 	c.course = course
 	c.question, _ = course.Question(0)
-	c.language = course.Language
 	return
 }
 
@@ -70,7 +68,6 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 		return nil, err
 	}
 
-	c.language = c.user.Language
 	c.conversationID = bot.UniqueConversationId(c.user.MixinID, d.config.ClientID)
 
 	if task, err := d.tasks.FindUser(ctx, c.user.MixinID); err == nil && task.IsActive() {
@@ -78,15 +75,22 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 			c.task = task
 			c.course = course
 			c.question, _ = c.course.Question(c.task.Question)
-			c.language = course.Language
 		}
 	}
 
 	return c, nil
 }
 
+func (c *commandContext) Language() string {
+	if c.task != nil {
+		return c.task.Language
+	}
+
+	return c.user.Language
+}
+
 func (c *commandContext) Localizer() *localizer.Localizer {
-	return localizer.WithLanguage(c.d.localizer, c.language)
+	return localizer.WithLanguage(c.d.localizer, c.Language())
 }
 
 func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
@@ -97,7 +101,6 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	case core.ActionSwitchChinese, core.ActionSwitchEnglish:
 		if cmd.Action != c.user.Language {
 			c.user.Language = cmd.Action
-			c.language = c.user.Language
 			if err := c.d.users.Update(ctx, c.user); err != nil {
 				return nil, fmt.Errorf("update user failed: %w", err)
 			}
@@ -109,7 +112,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	}
 
 	// 还没有设置语言
-	if c.language == "" {
+	if c.Language() == "" {
 		req := c.selectLanguage(ctx, cmd)
 		requests = append(requests, req)
 		return requests, nil
