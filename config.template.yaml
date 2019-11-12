@@ -1,5 +1,5 @@
 db:
-  dialect: mysql # postgresql, mysql , sqlite
+  dialect: mysql # postgresql, mysql , sqlite3
   host: localhost
   port: 3306
   user: root
@@ -31,3 +31,4 @@ i18n:
 
 deliver:
   button_color: "#11A7F7"
+  block_duration: 3600 # 答错题了 block 多少秒
