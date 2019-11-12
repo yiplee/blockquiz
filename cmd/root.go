@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/yiplee/blockquiz/config"
 	"github.com/yiplee/blockquiz/version"
 )
@@ -43,6 +44,10 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.blockquiz.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug mode")
+	rootCmd.PersistentFlags().String("dialect", "mysql", "db dialect")
+	_ = viper.BindPFlag("db.dialect", rootCmd.PersistentFlags().Lookup("dialect"))
+	rootCmd.PersistentFlags().String("dbhost", "", "db host")
+	_ = viper.BindPFlag("db.host", rootCmd.PersistentFlags().Lookup("dbhost"))
 }
 
 func initConfig() {

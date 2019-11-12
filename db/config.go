@@ -21,7 +21,7 @@ type Config struct {
 
 func SqliteInMemory() Config {
 	return Config{
-		Dialect: "sqlite",
+		Dialect: "sqlite3",
 		Host:    ":memory:",
 	}
 }
@@ -46,7 +46,8 @@ func Open(cfg Config) (*DB, error) {
 			cfg.Database,
 			cfg.Password,
 		)
-	case "sqlite":
+	case "sqlite3", "sqlite":
+		cfg.Dialect = "sqlite3"
 		uri = cfg.Host
 	default:
 		return nil, fmt.Errorf("unkonow db dialect: %s", cfg.Dialect)

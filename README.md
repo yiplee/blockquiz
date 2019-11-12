@@ -8,6 +8,11 @@
 
 ```shell script
 make build
+
+# cross build
+make build GOOS=linux GOARCH=amd64
+
+# if you want to use sqlite3, must compile with CGO enable
 ```
 
 ### Config
