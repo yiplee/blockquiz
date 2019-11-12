@@ -30,7 +30,7 @@ type (
 		UserID    string     `gorm:"size:36" json:"user_id,omitempty"`
 		Action    string     `gorm:"size:256" json:"action,omitempty"`
 		Answer    int        `json:"answer,omitempty"`
-		Source    string     `json:"source,omitempty"`
+		Source    string     `gorm:"size:64" json:"source,omitempty"`
 	}
 
 	CommandStore interface {
