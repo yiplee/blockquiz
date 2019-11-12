@@ -58,8 +58,6 @@ func runEngine(ctx context.Context) error {
 				ClientID:      cfg.Bot.ClientID,
 				SessionID:     cfg.Bot.SessionID,
 				SessionKey:    cfg.Bot.SessionKey,
-				CoinAsset:     cfg.Course.CoinAsset,
-				CoinAmount:    cfg.Course.CoinAmount,
 				ButtonColor:   cfg.Deliver.ButtonColor,
 				BlockDuration: time.Duration(cfg.Deliver.BlockDuration) * time.Second,
 			},
