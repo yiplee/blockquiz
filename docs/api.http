@@ -7,14 +7,16 @@ Content-Type: application/json
 
 {
   "language": "zh",
-  "user_id": "cd345a58-2c40-4519-9533-d50a1e1b8238"
+  "user_id": "cd345a58-2c40-4519-9533-d50a1e1b8238",
+  "block_duration": 61,
+  "creator": "lucky bot"
 }
 
 ### Active Task
-POST {{host}}/task/70/active
+POST {{host}}/task/77/active
 
 ### Find Task
-GET {{host}}/task/66
+GET {{host}}/task/77
 
 ### Cancel Task
 POST {{host}}/task/66/cancel

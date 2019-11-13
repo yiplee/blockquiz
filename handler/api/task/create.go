@@ -12,16 +12,16 @@ import (
 	"github.com/yiplee/blockquiz/handler/api/view"
 )
 
-const creator = "api"
-
 func HandleCreate(tasks core.TaskStore, courses core.CourseStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		log := logger.FromContext(ctx)
 
 		var form struct {
-			Language string `json:"language,omitempty" valid:"in(en|zh),required"`
-			UserID   string `json:"user_id,omitempty" valid:"uuid,required"`
+			Language      string `json:"language,omitempty" valid:"in(en|zh),required"`
+			UserID        string `json:"user_id,omitempty" valid:"uuid,required"`
+			Creator       string `json:"creator,omitempty" valid:"stringlength(0|36)"`
+			BlockDuration int64  `json:"block_duration,omitempty"` // default is 60*60+1
 		}
 
 		if err := request.BindJSON(c, &form); err != nil {
@@ -47,16 +47,26 @@ func HandleCreate(tasks core.TaskStore, courses core.CourseStore) gin.HandlerFun
 		})
 
 		course := list[0]
+		blockDuration := form.BlockDuration
+		if blockDuration <= 0 {
+			blockDuration = 60*60 + 1
+		}
+
+		creator := form.Creator
+		if creator == "" {
+			creator = "api"
+		}
 
 		task := &core.Task{
-			Language:   form.Language,
-			UserID:     form.UserID,
-			Creator:    creator,
-			Info:       "",
-			Course:     course.ID,
-			Question:   0,
-			State:      core.TaskStatePending,
-			BlockUntil: time.Now(),
+			Language:      form.Language,
+			UserID:        form.UserID,
+			Creator:       creator,
+			Info:          "",
+			Course:        course.ID,
+			Question:      0,
+			State:         core.TaskStatePending,
+			BlockDuration: blockDuration,
+			BlockUntil:    time.Now(),
 		}
 
 		if err := tasks.Create(ctx, task); err != nil {

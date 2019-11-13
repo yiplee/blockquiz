@@ -15,18 +15,19 @@ const (
 
 type (
 	Task struct {
-		ID         int64     `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-		CreatedAt  time.Time `json:"created_at,omitempty"`
-		UpdatedAt  time.Time `json:"updated_at,omitempty"`
-		Version    int64     `json:"version,omitempty"`
-		Language   string    `gorm:"size:24" json:"language,omitempty"`
-		UserID     string    `gorm:"size:36" json:"user_id,omitempty"`
-		Creator    string    `gorm:"size:36" json:"creator,omitempty"`
-		Info       string    `gorm:"size:512" json:"info,omitempty"`
-		Course     int64     `json:"course,omitempty"`
-		Question   int       `json:"question,omitempty"`
-		State      string    `gorm:"size:36" json:"state,omitempty"`
-		BlockUntil time.Time `json:"block_until,omitempty"`
+		ID            int64     `gorm:"PRIMARY_KEY" json:"id,omitempty"`
+		CreatedAt     time.Time `json:"created_at,omitempty"`
+		UpdatedAt     time.Time `json:"updated_at,omitempty"`
+		Version       int64     `json:"version,omitempty"`
+		Language      string    `gorm:"size:24" json:"language,omitempty"`
+		UserID        string    `gorm:"size:36" json:"user_id,omitempty"`
+		Creator       string    `gorm:"size:36" json:"creator,omitempty"`
+		Info          string    `gorm:"size:512" json:"info,omitempty"`
+		Course        int64     `json:"course,omitempty"`
+		Question      int       `json:"question,omitempty"`
+		State         string    `gorm:"size:36" json:"state,omitempty"`
+		BlockDuration int64     `json:"block_duration,omitempty"`
+		BlockUntil    time.Time `json:"block_until,omitempty"`
 	}
 
 	TaskStore interface {
@@ -38,10 +39,6 @@ type (
 		FindUser(ctx context.Context, userID string) (*Task, error)
 	}
 )
-
-func (t *Task) IsMandatory() bool {
-	return t.UserID != t.Creator
-}
 
 func (t *Task) IsBlocked() (blocked bool, remain time.Duration) {
 	if dur := time.Until(t.BlockUntil); dur > 0 {

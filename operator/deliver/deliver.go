@@ -141,7 +141,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 			cmd.Action = core.ActionUsage
 		}
 	} else {
-		if task.Version > cmd.ID {
+		if task.Version >= cmd.ID {
 			return nil
 		}
 

@@ -131,13 +131,14 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 		}
 
 		task := &core.Task{
-			Version:    0,
-			Language:   course.Language,
-			UserID:     c.user.MixinID,
-			Creator:    "system",
-			Course:     course.ID,
-			State:      core.TaskStateCourse,
-			BlockUntil: time.Now(),
+			Version:       0,
+			Language:      course.Language,
+			UserID:        c.user.MixinID,
+			Creator:       c.user.MixinID,
+			Course:        course.ID,
+			State:         core.TaskStateCourse,
+			BlockDuration: c.d.config.BlockDuration,
+			BlockUntil:    time.Now(),
 		}
 		if err := c.d.tasks.Create(ctx, task); err != nil {
 			return nil, fmt.Errorf("create task failed: %w", err)
@@ -156,9 +157,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	case core.ActionAnswerQuestion:
 		task := c.task
 
-		right := c.question.Answer == cmd.Answer
-
-		if right {
+		if right := c.question.Answer == cmd.Answer; right {
 			requests = append(requests, c.showAnswerFeedback(ctx, true))
 			task.Question += 1
 			// 下一题
@@ -170,13 +169,13 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 				task.State = core.TaskStateFinish
 			}
 		} else {
-			if blocked, _ := task.IsBlocked(); !blocked && task.IsMandatory() {
-				task.BlockUntil = time.Now().Add(c.d.config.BlockDuration)
+			if blocked, _ := task.IsBlocked(); !blocked && task.BlockDuration > 0 {
+				dur := time.Duration(task.BlockDuration) * time.Second
+				task.BlockUntil = time.Now().Add(dur)
 			}
 
 			requests = append(requests, c.showAnswerFeedback(ctx, false))
 		}
-
 	default:
 		logger.FromContext(ctx).Warnf("unknown action %s", cmd.Action)
 	}

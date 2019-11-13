@@ -59,7 +59,7 @@ func runEngine(ctx context.Context) error {
 				SessionID:     cfg.Bot.SessionID,
 				SessionKey:    cfg.Bot.SessionKey,
 				ButtonColor:   cfg.Deliver.ButtonColor,
-				BlockDuration: time.Duration(cfg.Deliver.BlockDuration) * time.Second,
+				BlockDuration: cfg.Deliver.BlockDuration,
 			},
 		)
 

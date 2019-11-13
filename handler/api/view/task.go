@@ -17,19 +17,21 @@ type Task struct {
 	State         string  `json:"state,omitempty"`
 	IsBlocked     bool    `json:"is_blocked,omitempty"`
 	BlockUntil    int64   `json:"block_until,omitempty"`
+	BlockDuration int64   `json:"block_duration,omitempty"`
 }
 
 func TaskView(task *core.Task, course *core.Course) *Task {
 	view := &Task{
-		ID:         task.ID,
-		CreatedAt:  task.CreatedAt.Unix(),
-		UpdatedAt:  task.UpdatedAt.Unix(),
-		Language:   task.Language,
-		UserID:     task.UserID,
-		Creator:    task.Creator,
-		Question:   task.Question,
-		State:      task.State,
-		BlockUntil: task.BlockUntil.Unix(),
+		ID:            task.ID,
+		CreatedAt:     task.CreatedAt.Unix(),
+		UpdatedAt:     task.UpdatedAt.Unix(),
+		Language:      task.Language,
+		UserID:        task.UserID,
+		Creator:       task.Creator,
+		Question:      task.Question,
+		State:         task.State,
+		BlockUntil:    task.BlockUntil.Unix(),
+		BlockDuration: task.BlockDuration,
 	}
 
 	if course != nil {
