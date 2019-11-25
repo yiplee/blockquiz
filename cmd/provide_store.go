@@ -13,7 +13,12 @@ import (
 )
 
 func provideDB() *db.DB {
-	return db.MustOpen(cfg.DB)
+	database := db.MustOpen(cfg.DB)
+	if err := db.Migrate(database); err != nil {
+		panic(err)
+	}
+
+	return database
 }
 
 func provideUserStore(db *db.DB) core.UserStore {

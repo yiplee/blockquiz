@@ -128,6 +128,8 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 }
 
 func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
+	log := logger.FromContext(ctx)
+
 	var requests []*bot.MessageRequest
 
 	// 设置语言
@@ -174,6 +176,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	case core.ActionAnswerQuestion:
 		task := c.task
 
+		log.Debugf("expect %d and get %d", c.question.Answer, cmd.Answer)
 		if right := c.question.Answer == cmd.Answer; right {
 			requests = append(requests, c.showAnswerFeedback(ctx, true))
 			task.Question += 1
