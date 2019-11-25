@@ -130,8 +130,6 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 }
 
 func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
-	log := logger.FromContext(ctx)
-
 	var requests []*bot.MessageRequest
 
 	// 设置语言
