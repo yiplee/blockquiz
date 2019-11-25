@@ -19,6 +19,7 @@ type commandContext struct {
 	course         *core.Course
 	task           *core.Task
 	question       *core.Question
+	updateTask     bool
 	conversationID string
 	traceID        string
 }
@@ -27,6 +28,7 @@ func (c *commandContext) bindTask(task *core.Task, course *core.Course, question
 	c.task = task
 	c.course = course
 	c.question, _ = course.Question(question)
+	c.updateTask = c.task.IsPending()
 	return
 }
 
