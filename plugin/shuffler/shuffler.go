@@ -4,13 +4,13 @@ import (
 	"github.com/yiplee/blockquiz/core"
 )
 
-type rand struct{}
+type random struct{}
 
 func Rand() core.CourseShuffler {
-	return &rand{}
+	return &random{}
 }
 
-func (r *rand) Shuffle(course *core.Course, userID string, questionCount int) {
+func (r *random) Shuffle(course *core.Course, userID string, questionCount int) {
 	seed := userID + course.Title
 
 	questions := course.Questions

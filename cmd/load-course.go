@@ -42,9 +42,9 @@ var loadCourseCmd = &cobra.Command{
 
 		cmd.Println(len(list), "courses loaded")
 		var form columnize.Form
-		form.Append("id", "language", "title")
-		for _, course := range list {
-			form.Append(strconv.FormatInt(course.ID, 10), course.Language, course.Title)
+		form.Append("num", "language", "title", "questions")
+		for idx, course := range list {
+			form.Append(strconv.Itoa(idx+1), course.Language, course.Title, strconv.Itoa(len(course.Questions)))
 		}
 
 		form.Fprint(cmd.OutOrStdout())

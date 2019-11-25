@@ -13,7 +13,6 @@ type Course struct {
 
 func CourseView(course *core.Course) *Course {
 	return &Course{
-		ID:       course.ID,
 		Language: course.Language,
 		Title:    course.Title,
 		Summary:  course.Summary,

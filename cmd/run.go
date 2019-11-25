@@ -30,6 +30,7 @@ func runEngine(ctx context.Context) error {
 	users := provideUserStore(db)
 	commands := provideCommandStore(db)
 	commandParser := provideParser()
+	courseShuffler := provideShuffler()
 	wallets := provideWalletStore(db)
 	courses := provideCourseStore()
 	tasks := provideTaskStore(db)
@@ -50,6 +51,7 @@ func runEngine(ctx context.Context) error {
 			users,
 			commands,
 			commandParser,
+			courseShuffler,
 			courses,
 			wallets,
 			tasks,
@@ -60,6 +62,7 @@ func runEngine(ctx context.Context) error {
 				SessionKey:    cfg.Bot.SessionKey,
 				ButtonColor:   cfg.Deliver.ButtonColor,
 				BlockDuration: cfg.Deliver.BlockDuration,
+				QuestionCount: cfg.Deliver.QuestionCount,
 			},
 		)
 

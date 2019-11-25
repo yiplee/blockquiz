@@ -54,8 +54,8 @@ func (t *taskStore) Find(ctx context.Context, id int64) (*core.Task, error) {
 	return &task, err
 }
 
-func (t *taskStore) FindUser(ctx context.Context, userID string) (*core.Task, error) {
+func (t *taskStore) FindUser(ctx context.Context, userID, title string) (*core.Task, error) {
 	var task core.Task
-	err := t.db.View().Where("user_id = ?", userID).Last(&task).Error
+	err := t.db.View().Where("user_id = ? AND title = ?", userID, title).Last(&task).Error
 	return &task, err
 }

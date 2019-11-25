@@ -294,28 +294,6 @@ func (c *commandContext) showFinishCourse(ctx context.Context) *bot.MessageReque
 	return req
 }
 
-func (c *commandContext) showNextCourseButton(ctx context.Context, next *core.Course) *bot.MessageRequest {
-	req := &bot.MessageRequest{
-		Category:       "APP_BUTTON_GROUP",
-		RecipientId:    c.user.MixinID,
-		ConversationId: c.conversationID,
-		MessageId:      uuid.Modify(c.traceID, "next course button"),
-	}
-
-	cmd := &core.Command{
-		Action: core.ActionShowCourse,
-	}
-
-	buttons := []button{c.newButton(
-		c.Localizer().MustLocalize("next_course"),
-		c.inputButtonAction(ctx, cmd),
-	)}
-
-	data, _ := jsoniter.Marshal(buttons)
-	req.Data = base64.StdEncoding.EncodeToString(data)
-	return req
-}
-
 func (c *commandContext) showNextQuestionButton(ctx context.Context, nextQuestion int) *bot.MessageRequest {
 	req := &bot.MessageRequest{
 		Category:       "APP_BUTTON_GROUP",

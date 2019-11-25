@@ -16,7 +16,7 @@ func setTask(db *db.DB) error {
 		return err
 	}
 
-	if err := tx.AddIndex("idx_tasks_user_id", "user_id").Error; err != nil {
+	if err := tx.AddIndex("idx_tasks_user_title", "user_id", "title").Error; err != nil {
 		return err
 	}
 

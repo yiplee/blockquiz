@@ -47,6 +47,7 @@ type (
 	Deliver struct {
 		ButtonColor   string `json:"button_color,omitempty"`
 		BlockDuration int64  `json:"block_duration,omitempty"` // 秒
+		QuestionCount int    `json:"question_count,omitempty"`
 	}
 )
 
@@ -83,5 +84,9 @@ func defaultConfig(cfg *Config) {
 
 	if cfg.Deliver.ButtonColor == "" {
 		cfg.Deliver.ButtonColor = "#11A7F7"
+	}
+
+	if cfg.Deliver.QuestionCount == 0 {
+		cfg.Deliver.QuestionCount = 10
 	}
 }

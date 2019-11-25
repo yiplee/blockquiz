@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/go-yaml/yaml"
@@ -15,13 +13,14 @@ import (
 )
 
 type fileLoader struct {
-	courses []*core.Course
-	set     map[int64]bool
+	courses []core.Course
+	indexes map[string]int
 }
 
 func LoadCourses(courseFolder string) core.CourseStore {
 	s := &fileLoader{
-		set: make(map[int64]bool),
+		courses: make([]core.Course, 0),
+		indexes: make(map[string]int),
 	}
 
 	err := filepath.Walk(courseFolder, func(path string, info os.FileInfo, err error) error {
@@ -31,12 +30,7 @@ func LoadCourses(courseFolder string) core.CourseStore {
 		}
 
 		name := strings.TrimSuffix(info.Name(), ext)
-		fields := strings.Fields(name)
-
-		id, _ := strconv.ParseInt(fields[0], 10, 64)
-		if id <= 0 {
-			return nil
-		}
+		fields := strings.Split(name, ".")
 
 		f, err := os.Open(path)
 		if err != nil {
@@ -49,12 +43,19 @@ func LoadCourses(courseFolder string) core.CourseStore {
 			return err
 		}
 
+		if course.Title == "" {
+			course.Title = fields[0]
+		}
+
+		if course.Language == "" {
+			course.Language = fields[1]
+		}
+
 		if err := core.ValidateCourse(&course); err != nil {
 			return fmt.Errorf("validate %s failed: %w", course.Title, err)
 		}
 
-		course.ID = id
-		if err := s.insert(&course); err != nil {
+		if err := s.insert(course); err != nil {
 			return err
 		}
 
@@ -65,23 +66,21 @@ func LoadCourses(courseFolder string) core.CourseStore {
 		panic(err)
 	}
 
-	s.sort()
 	return s
 }
 
-func (s *fileLoader) sort() {
-	sort.Slice(s.courses, func(i, j int) bool {
-		return s.courses[i].ID < s.courses[j].ID
-	})
+func courseKey(title, language string) string {
+	return title + language
 }
 
-func (s *fileLoader) insert(course *core.Course) error {
-	if s.set[course.ID] {
-		return fmt.Errorf("dumplicated course %d inserted", course.ID)
+func (s *fileLoader) insert(course core.Course) error {
+	key := courseKey(course.Title, course.Language)
+	if _, ok := s.indexes[key]; ok {
+		return fmt.Errorf("dumplicated course %s %s inserted", course.Title, course.Language)
 	}
 
 	s.courses = append(s.courses, course)
-	s.set[course.ID] = true
+	s.indexes[key] = len(s.courses) - 1
 	return nil
 }
 
@@ -90,57 +89,34 @@ func (s *fileLoader) Add(ctx context.Context, course *core.Course) error {
 }
 
 func (s *fileLoader) ListAll(ctx context.Context) ([]*core.Course, error) {
-	return s.courses[:], nil
+	courses := make([]*core.Course, 0, len(s.courses))
+	for _, course := range s.courses {
+		course := course
+		courses = append(courses, &course)
+	}
+
+	return courses, nil
 }
 
 func (s *fileLoader) ListLanguage(ctx context.Context, language string) ([]*core.Course, error) {
 	courses := make([]*core.Course, 0, len(s.courses))
 	for _, course := range s.courses {
-		if course.Language == language {
-			courses = append(courses, course)
+		if course := course; course.Language == language {
+			courses = append(courses, &course)
 		}
 	}
 
 	return courses, nil
 }
 
-func (s *fileLoader) Find(ctx context.Context, id int64) (*core.Course, error) {
-	courses := s.courses
-	idx := sort.Search(len(courses), func(i int) bool {
-		return courses[i].ID >= id
-	})
-
-	if idx >= len(courses) {
+func (s *fileLoader) Find(ctx context.Context, title, language string) (*core.Course, error) {
+	key := courseKey(title, language)
+	idx, ok := s.indexes[key]
+	if !ok {
 		return nil, store.ErrNotFound
 	}
 
-	course := courses[idx]
-	if course.ID != id {
-		return nil, store.ErrNotFound
-	}
-
-	return course, nil
-}
-
-func (s *fileLoader) FindNext(ctx context.Context, course *core.Course) (*core.Course, error) {
-	courses, err := s.ListLanguage(ctx, course.Language)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(courses) == 0 {
-		return nil, store.ErrNotFound
-	}
-
-	idx := sort.Search(len(courses), func(i int) bool {
-		c := courses[i]
-		return c.ID > course.ID
-	})
-
-	if idx >= len(courses) {
-		// get from beginning
-		idx = 0
-	}
-
-	return courses[idx], nil
+	var course core.Course
+	course = s.courses[idx]
+	return &course, nil
 }
