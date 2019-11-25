@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/MixinNetwork/bot-api-go-client"
-	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -223,7 +222,6 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 		fmt.Fprintf(&buf, "%s %s\n", core.AnswerToString(idx), choice)
 	}
 
-	logger.FromContext(ctx).Debugln("showQuestionContent", string(buf.Bytes()))
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
 	return req
 }
@@ -249,7 +247,6 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 	}
 
 	data, _ := jsoniter.Marshal(buttons)
-	logger.FromContext(ctx).Debugln("showQuestionChoiceButtons", string(data))
 	req.Data = base64.StdEncoding.EncodeToString(data)
 	return req
 }
