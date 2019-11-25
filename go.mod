@@ -11,6 +11,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/go-multierror v1.0.0
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.11
 	github.com/json-iterator/go v1.1.8
 	github.com/mattn/go-sqlite3 v1.11.0

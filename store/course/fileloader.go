@@ -8,18 +8,19 @@ import (
 	"strings"
 
 	"github.com/go-yaml/yaml"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/store"
 )
 
 type fileLoader struct {
-	courses []core.Course
+	courses []*core.Course
 	indexes map[string]int
 }
 
 func LoadCourses(courseFolder string) core.CourseStore {
 	s := &fileLoader{
-		courses: make([]core.Course, 0),
+		courses: make([]*core.Course, 0),
 		indexes: make(map[string]int),
 	}
 
@@ -55,7 +56,7 @@ func LoadCourses(courseFolder string) core.CourseStore {
 			return fmt.Errorf("validate %s failed: %w", course.Title, err)
 		}
 
-		if err := s.insert(course); err != nil {
+		if err := s.insert(&course); err != nil {
 			return err
 		}
 
@@ -73,7 +74,7 @@ func courseKey(title, language string) string {
 	return title + language
 }
 
-func (s *fileLoader) insert(course core.Course) error {
+func (s *fileLoader) insert(course *core.Course) error {
 	key := courseKey(course.Title, course.Language)
 	if _, ok := s.indexes[key]; ok {
 		return fmt.Errorf("dumplicated course %s %s inserted", course.Title, course.Language)
@@ -91,8 +92,7 @@ func (s *fileLoader) Add(ctx context.Context, course *core.Course) error {
 func (s *fileLoader) ListAll(ctx context.Context) ([]*core.Course, error) {
 	courses := make([]*core.Course, 0, len(s.courses))
 	for _, course := range s.courses {
-		course := course
-		courses = append(courses, &course)
+		courses = append(courses, copyCourse(course))
 	}
 
 	return courses, nil
@@ -102,7 +102,7 @@ func (s *fileLoader) ListLanguage(ctx context.Context, language string) ([]*core
 	courses := make([]*core.Course, 0, len(s.courses))
 	for _, course := range s.courses {
 		if course := course; course.Language == language {
-			courses = append(courses, &course)
+			courses = append(courses, copyCourse(course))
 		}
 	}
 
@@ -116,7 +116,13 @@ func (s *fileLoader) Find(ctx context.Context, title, language string) (*core.Co
 		return nil, store.ErrNotFound
 	}
 
-	var course core.Course
-	course = s.courses[idx]
-	return &course, nil
+	course := s.courses[idx]
+	return copyCourse(course), nil
+}
+
+func copyCourse(course *core.Course) *core.Course {
+	data, _ := jsoniter.Marshal(course)
+	var cpy core.Course
+	_ = jsoniter.Unmarshal(data, &cpy)
+	return &cpy
 }

@@ -11,7 +11,7 @@ func TestShuffleCourse(t *testing.T) {
 	c := &core.Course{
 		Questions: []*core.Question{
 			{
-				Answer: 0,
+				Answer: 2,
 				Choices: []string{
 					"1",
 					"2",
