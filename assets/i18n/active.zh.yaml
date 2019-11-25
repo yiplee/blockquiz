@@ -1,5 +1,6 @@
 welcome : 欢迎来到 BlcokQuiz!
 select_language: 我是中文用户
+switch_language: 切换语言
 language_switched: 已设置成中文
 usage: |
   可以用以下命令和机器人交互:
@@ -9,6 +10,9 @@ usage: |
   > ? or usage: 查看使用帮助
 
   玩得开心 :)
+
+usage_start_task: 请点击"开始答题"按钮开始答题。
+usage_finish_task: 你已经完成了今天所有的题。
 
 show_course: 学习课程
 show_question: 开始答题

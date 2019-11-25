@@ -7,10 +7,9 @@ import (
 
 const (
 	ActionUsage          = "usage"           // 帮助
+	ActionSwitchLanguage = "language"        // 切换语言
 	ActionSwitchEnglish  = "en"              // 切换到英文
 	ActionSwitchChinese  = "zh"              // 切换到中文
-	ActionRandomCourse   = "random"          // 随机课程
-	ActionShowCourse     = "show_course"     // 开始课程
 	ActionShowQuestion   = "show_question"   // 开始答题
 	ActionAnswerQuestion = "answer_question" // 答题
 )

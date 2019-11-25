@@ -23,10 +23,10 @@ type commandContext struct {
 	traceID        string
 }
 
-func (c *commandContext) bindTask(task *core.Task, course *core.Course) {
+func (c *commandContext) bindTask(task *core.Task, course *core.Course, question int) {
 	c.task = task
 	c.course = course
-	c.question, _ = course.Question(0)
+	c.question, _ = course.Question(question)
 	return
 }
 
@@ -70,11 +70,11 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 
 	c.conversationID = bot.UniqueConversationId(c.user.MixinID, d.config.ClientID)
 
-	if task, err := d.tasks.FindUser(ctx, c.user.MixinID); err == nil && task.IsActive() {
-		if course, err := d.courses.Find(ctx, task.Course); err == nil {
-			c.task = task
-			c.course = course
-			c.question, _ = c.course.Question(c.task.Question)
+	title := core.CourseTitleByDate(cmd.CreatedAt)
+	if task, err := d.tasks.FindUser(ctx, c.user.MixinID, title); err == nil {
+		if course, err := d.courses.Find(ctx, task.Title, task.Language); err == nil {
+			d.shuffler.Shuffle(course, c.user.MixinID, d.config.QuestionCount)
+			c.bindTask(task, course, task.Question)
 		}
 	}
 
@@ -91,6 +91,40 @@ func (c *commandContext) Language() string {
 
 func (c *commandContext) Localizer() *localizer.Localizer {
 	return localizer.WithLanguage(c.d.localizer, c.Language())
+}
+
+func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command) {
+	task := c.task
+
+	if task == nil {
+		switch cmd.Action {
+		case core.ActionAnswerQuestion:
+			cmd.Action = core.ActionUsage
+		}
+
+		return
+	}
+
+	if task.IsPending() {
+		if blocked, _ := task.IsBlocked(); blocked {
+			// block 状态所有输入都当答错题处理
+			cmd.Action = core.ActionAnswerQuestion
+			cmd.Answer = -1
+		} else if cmd.Action != core.ActionAnswerQuestion {
+			cmd.Action = core.ActionShowQuestion
+		}
+
+		return
+	}
+
+	if task.IsDone() {
+		switch cmd.Action {
+		case core.ActionAnswerQuestion, core.ActionShowQuestion:
+			cmd.Action = core.ActionUsage
+		}
+
+		return
+	}
 }
 
 func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
@@ -119,39 +153,22 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	}
 
 	switch cmd.Action {
+	case core.ActionSwitchLanguage:
+		requests = append(requests, c.selectLanguage(ctx, nil))
 	case core.ActionUsage:
-		requests = append(requests, c.showUsage(ctx))
-	case core.ActionRandomCourse:
-		course, err := c.d.pickRandomCourse(ctx, c.user)
-		if err != nil {
-			if store.IsErrNotFound(err) {
-				break
-			}
-			return nil, fmt.Errorf("pick random course failed: %w", err)
-		}
-
-		task := &core.Task{
-			Version:       0,
-			Language:      course.Language,
-			UserID:        c.user.MixinID,
-			Creator:       c.user.MixinID,
-			Course:        course.ID,
-			State:         core.TaskStateCourse,
-			BlockDuration: c.d.config.BlockDuration,
-			BlockUntil:    time.Now(),
-		}
-		if err := c.d.tasks.Create(ctx, task); err != nil {
-			return nil, fmt.Errorf("create task failed: %w", err)
-		}
-
-		c.bindTask(task, course)
-		cmd.Action = core.ActionShowCourse
-		return c.handleCommand(ctx, cmd)
-	case core.ActionShowCourse:
-		requests = append(requests, c.showCourseContent(ctx))
-		requests = append(requests, c.showCourseButtons(ctx))
+		finish := c.task.IsDone()
+		requests = append(requests, c.showUsage(ctx, finish))
+		requests = append(requests, c.showUsageButtons(ctx, finish))
 	case core.ActionShowQuestion:
-		c.task.State = core.TaskStateQuestion
+		if c.task == nil {
+			task, course, err := c.d.createTask(ctx, c.user, cmd.CreatedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			c.bindTask(task, course, 0)
+		}
+
 		requests = append(requests, c.showQuestionContent(ctx))
 		requests = append(requests, c.showQuestionChoiceButtons(ctx))
 	case core.ActionAnswerQuestion:

@@ -10,27 +10,17 @@ func parseCommand(args Args) (*core.Command, error) {
 	}
 
 	switch args.First() {
-	case core.ActionSwitchChinese:
+	case core.ActionSwitchLanguage, "切换语言":
+		cmd.Action = core.ActionSwitchLanguage
+	case core.ActionSwitchChinese, "中文":
 		cmd.Action = core.ActionSwitchChinese
-	case core.ActionSwitchEnglish:
+	case core.ActionSwitchEnglish, "english":
 		cmd.Action = core.ActionSwitchEnglish
-	case core.ActionShowCourse:
-		cmd.Action = core.ActionShowCourse
-	case core.ActionRandomCourse:
-		cmd.Action = core.ActionRandomCourse
-	case core.ActionShowQuestion:
+	case core.ActionShowQuestion, "答题", "开始答题":
 		cmd.Action = core.ActionShowQuestion
-	case core.ActionAnswerQuestion:
-		/*
-			> answer_question 1
-			arg(1) present answer
-		*/
-		cmd.Action = core.ActionAnswerQuestion
-		cmd.Answer, _ = args.GetInt(1)
 	default:
-		// a - f 算答题
 		if runes := []byte(args.First()); len(runes) == 1 && len(args) == 1 {
-			if r := runes[0]; r >= 'a' && r <= 'f' {
+			if r := runes[0]; r >= 'a' && r <= 'd' {
 				cmd.Action = core.ActionAnswerQuestion
 				cmd.Answer = int(r - 'a')
 			}

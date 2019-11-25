@@ -77,7 +77,6 @@ func (c *commandContext) selectLanguage(ctx context.Context, next *core.Command)
 	}
 
 	data, _ := jsoniter.Marshal(buttons)
-	logger.FromContext(ctx).WithField("action", "selectLanguage").Debug(string(data))
 	req.Data = base64.StdEncoding.EncodeToString(data)
 	return req
 }
@@ -95,7 +94,7 @@ func (c *commandContext) languageSwitched(ctx context.Context) *bot.MessageReque
 	return req
 }
 
-func (c *commandContext) showUsage(ctx context.Context) *bot.MessageRequest {
+func (c *commandContext) showUsage(ctx context.Context, finish bool) *bot.MessageRequest {
 	req := &bot.MessageRequest{
 		Category:       "PLAIN_TEXT",
 		RecipientId:    c.user.MixinID,
@@ -103,8 +102,44 @@ func (c *commandContext) showUsage(ctx context.Context) *bot.MessageRequest {
 		MessageId:      uuid.Modify(c.traceID, "show usage"),
 	}
 
-	data := c.Localizer().MustLocalize("usage")
+	id := "usage_start_task"
+	if finish {
+		id = "usage_finish_task"
+	}
+
+	data := c.Localizer().MustLocalize(id)
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
+func (c *commandContext) showUsageButtons(ctx context.Context, finish bool) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "APP_BUTTON_GROUP",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "show usage buttons"),
+	}
+
+	buttons := []button{
+		c.newButton(
+			c.Localizer().MustLocalize("switch_language"),
+			c.inputButtonAction(ctx, &core.Command{
+				Action: core.ActionSwitchLanguage,
+			}),
+		),
+	}
+
+	if !finish {
+		buttons = append(buttons, c.newButton(
+			c.Localizer().MustLocalize("show_question"),
+			c.inputButtonAction(ctx, &core.Command{
+				Action: core.ActionShowQuestion,
+			}),
+		))
+	}
+
+	data, _ := jsoniter.Marshal(buttons)
+	req.Data = base64.StdEncoding.EncodeToString(data)
 	return req
 }
 
@@ -254,7 +289,7 @@ func (c *commandContext) showFinishCourse(ctx context.Context) *bot.MessageReque
 		MessageId:      uuid.Modify(c.traceID, "finish course"),
 	}
 
-	data := c.Localizer().MustLocalize("finish_course", "title", c.course.Title)
+	data := c.Localizer().MustLocalize("usage_finish_task")
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
 }

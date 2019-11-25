@@ -1,5 +1,6 @@
 welcome: welcome to BlcokQuiz!
 select_language: I'm English user
+switch_language: Switch Language
 language_switched: Switched to English
 usage: |
   You can interact with the robot with the following command：
@@ -9,6 +10,9 @@ usage: |
   > ? or usage: help about blockquiz
 
   Have fun :)
+
+usage_start_task: Click the "Start Answering Questions" button to start answering questions.
+usage_finish_task: You had completed all questions today.
 
 show_course: Learning Course
 show_question: Start answering questions

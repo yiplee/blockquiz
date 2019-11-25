@@ -21,6 +21,7 @@ type Deliver struct {
 	users     core.UserStore
 	commands  core.CommandStore
 	parser    core.CommandParser
+	shuffler  core.CourseShuffler
 	courses   core.CourseStore
 	wallets   core.WalletStore
 	tasks     core.TaskStore
@@ -32,6 +33,7 @@ func New(
 	users core.UserStore,
 	commands core.CommandStore,
 	parser core.CommandParser,
+	shuffler core.CourseShuffler,
 	courses core.CourseStore,
 	wallets core.WalletStore,
 	tasks core.TaskStore,
@@ -46,6 +48,7 @@ func New(
 		users:     users,
 		commands:  commands,
 		parser:    parser,
+		shuffler:  shuffler,
 		courses:   courses,
 		wallets:   wallets,
 		tasks:     tasks,
@@ -122,42 +125,13 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 		return err
 	}
 
-	isTaskOperation := !govalidator.IsIn(cmd.Action,
-		core.ActionSwitchChinese,
-		core.ActionSwitchEnglish,
-		core.ActionUsage,
-		core.ActionRandomCourse,
-	)
-
 	log := logger.FromContext(ctx).WithField("user_id", c.user.MixinID)
 	if c.task != nil {
-		log = log.WithField("task", c.task.ID).WithField("course", c.course.ID)
+		log = log.WithField("task", c.task.ID).WithField("title", c.course.Title)
 	}
 
 	log.Debugf("pre handle cmd %s", cmd.Action)
-
-	if task := c.task; task == nil || task.IsDone() || task.IsPending() {
-		if isTaskOperation {
-			cmd.Action = core.ActionUsage
-		}
-	} else {
-		if task.Version >= cmd.ID {
-			return nil
-		}
-
-		if blocked, _ := task.IsBlocked(); blocked {
-			// 等待状态所有输入都当答错题处理
-			cmd.Action = core.ActionAnswerQuestion
-			cmd.Answer = -1
-		} else if !isTaskOperation {
-			if task.State == core.TaskStateCourse {
-				cmd.Action = core.ActionShowCourse
-			} else {
-				cmd.Action = core.ActionShowQuestion
-			}
-		}
-	}
-
+	c.preHandleCommand(ctx, cmd)
 	log.Debugf("handle cmd %s", cmd.Action)
 
 	requests, err := c.handleCommand(ctx, cmd)
@@ -182,7 +156,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	}
 
 	// update task
-	if task := c.task; task != nil {
+	if task := c.task; task != nil && task.IsPending() {
 		if err := d.tasks.UpdateVersion(ctx, task, cmd.ID); err != nil {
 			return err
 		}
@@ -206,6 +180,33 @@ func (d *Deliver) pickRandomCourse(ctx context.Context, user *core.User) (*core.
 	})
 
 	return list[0], nil
+}
+
+func (d *Deliver) createTask(ctx context.Context, user *core.User, at time.Time) (*core.Task, *core.Course, error) {
+	title := core.CourseTitleByDate(at)
+	course, err := d.courses.Find(ctx, title, user.Language)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	d.shuffler.Shuffle(course, user.MixinID, d.config.QuestionCount)
+
+	task := &core.Task{
+		Version:       0,
+		UserID:        user.MixinID,
+		Creator:       "system",
+		Title:         course.Title,
+		Language:      course.Language,
+		State:         core.TaskStatePending,
+		BlockDuration: d.config.BlockDuration,
+		BlockUntil:    time.Now(),
+	}
+
+	if err := d.tasks.Create(ctx, task); err != nil {
+		return nil, nil, err
+	}
+
+	return task, course, err
 }
 
 /*

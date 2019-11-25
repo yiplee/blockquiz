@@ -3,15 +3,15 @@ package core
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 )
 
 type (
 	Course struct {
-		ID        int64       `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-		Language  string      `gorm:"size:36" json:"language,omitempty" yaml:"language"`
 		Title     string      `gorm:"size:128" json:"title,omitempty" yaml:"title"`
+		Language  string      `gorm:"size:36" json:"language,omitempty" yaml:"language"`
 		Summary   string      `gorm:"size:1024" json:"summary,omitempty" yaml:"summary"`
 		Content   string      `gorm:"type:LONGTEXT" json:"content,omitempty" yaml:"content"`
 		URL       string      `gorm:"size:256" json:"url,omitempty" yaml:"url"`
@@ -28,8 +28,11 @@ type (
 		Add(ctx context.Context, course *Course) error
 		ListAll(ctx context.Context) ([]*Course, error)
 		ListLanguage(ctx context.Context, language string) ([]*Course, error)
-		Find(ctx context.Context, id int64) (*Course, error)
-		FindNext(ctx context.Context, course *Course) (*Course, error)
+		Find(ctx context.Context, title, language string) (*Course, error)
+	}
+
+	CourseShuffler interface {
+		Shuffle(course *Course, userID string, questionCount int)
 	}
 )
 
@@ -43,6 +46,10 @@ func (lesson *Course) Question(idx int) (*Question, bool) {
 	}
 
 	return nil, false
+}
+
+func CourseTitleByDate(at time.Time) string {
+	return at.UTC().Format("2006-01-02")
 }
 
 func ValidateCourse(course *Course) error {
