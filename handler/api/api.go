@@ -39,20 +39,20 @@ func (s Server) Handle() http.Handler {
 
 	router.GET("/hc", hc.Handle())
 
-	router.POST(
-		"/task",
-		task.HandleCreate(s.Tasks, s.Courses),
-	)
-
-	router.POST(
-		"/task/:id/active",
-		task.Required(s.Tasks),
-		task.HandleActive(
-			s.Tasks,
-			s.Courses,
-			s.Commands,
-		),
-	)
+	// router.POST(
+	// 	"/task",
+	// 	task.HandleCreate(s.Tasks, s.Courses),
+	// )
+	//
+	// router.POST(
+	// 	"/task/:id/active",
+	// 	task.Required(s.Tasks),
+	// 	task.HandleActive(
+	// 		s.Tasks,
+	// 		s.Courses,
+	// 		s.Commands,
+	// 	),
+	// )
 
 	router.GET(
 		"/task/:id",
@@ -60,11 +60,11 @@ func (s Server) Handle() http.Handler {
 		task.HandleFind(s.Courses),
 	)
 
-	router.POST(
-		"/task/:id/cancel",
-		task.Required(s.Tasks),
-		task.HandleCancel(s.Tasks),
-	)
+	// router.POST(
+	// 	"/task/:id/cancel",
+	// 	task.Required(s.Tasks),
+	// 	task.HandleCancel(s.Tasks),
+	// )
 
 	return router
 }
