@@ -84,7 +84,7 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 }
 
 func (c *commandContext) Language() string {
-	if c.task != nil {
+	if c.task != nil && c.task.IsPending() {
 		return c.task.Language
 	}
 
