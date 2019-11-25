@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/mq"
 	"github.com/fox-one/pkg/number"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -42,9 +44,11 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		input = strings.ReplaceAll(transfer.Memo, "+", " ")
 		source = core.CommandSourceSnapshot
 	default:
-		return nil
+		input = msg.Category
+		source = core.CommandSourcePlainText
 	}
 
+	log.WithField("src", source).Debugf("parse input: %s", input)
 	cmds, err := h.parser.Parse(ctx, input)
 	if err != nil {
 		return nil
@@ -56,11 +60,18 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 			traceID = uuid.Modify(traceID, strconv.Itoa(idx))
 		}
 
+		cmd.CreatedAt = msg.CreatedAt
 		cmd.TraceID = traceID
 		cmd.UserID = msg.UserId
 		cmd.Source = source
-		if err := h.commands.Create(ctx, cmd); err != nil {
-			log.WithError(err).Error("create command")
+
+		data, _ := jsoniter.MarshalToString(cmd)
+		if err := h.pub.Publish(ctx, data, &mq.PublishOption{
+			GroupID:   cmd.UserID,
+			TraceID:   cmd.TraceID,
+			ExpiredAt: time.Now().Add(time.Hour),
+		}); err != nil {
+			log.WithError(err).Error("pub cmd message")
 			return err
 		}
 	}

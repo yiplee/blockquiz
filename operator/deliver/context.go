@@ -167,6 +167,11 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 		if c.task == nil {
 			task, course, err := c.d.createTask(ctx, c.user, cmd.CreatedAt)
 			if err != nil {
+				if store.IsErrNotFound(err) {
+					requests = append(requests, c.showMissingCourse(ctx))
+					break
+				}
+
 				return nil, err
 			}
 
@@ -178,7 +183,6 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 	case core.ActionAnswerQuestion:
 		task := c.task
 
-		log.Debugf("expect %d and get %d", c.question.Answer, cmd.Answer)
 		if right := c.question.Answer == cmd.Answer; right {
 			requests = append(requests, c.showAnswerFeedback(ctx, true))
 			task.Question += 1

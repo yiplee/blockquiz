@@ -13,6 +13,7 @@ import (
 type (
 	Config struct {
 		DB      db.Config `json:"db,omitempty"`
+		AWS     AWS       `json:"aws,omitempty"`
 		Bot     Bot       `json:"bot,omitempty"`
 		Course  Course    `json:"course,omitempty"`
 		I18n    I18n      `json:"i18n,omitempty"`
@@ -25,6 +26,13 @@ type (
 		SessionKey string `json:"session_key,omitempty"`
 		PinToken   string `json:"pin_token,omitempty"`
 		Pin        string `json:"pin,omitempty"`
+	}
+
+	AWS struct {
+		Key      string `json:"key,omitempty"`
+		Secret   string `json:"secret,omitempty"`
+		Region   string `json:"region,omitempty"`
+		QueueURL string `json:"queue_url,omitempty"`
 	}
 
 	Course struct {
@@ -48,6 +56,7 @@ type (
 		ButtonColor   string `json:"button_color,omitempty"`
 		BlockDuration int64  `json:"block_duration,omitempty"` // 秒
 		QuestionCount int    `json:"question_count,omitempty"`
+		Capacity      int    `json:"capacity,omitempty"`
 	}
 )
 
@@ -88,5 +97,9 @@ func defaultConfig(cfg *Config) {
 
 	if cfg.Deliver.QuestionCount == 0 {
 		cfg.Deliver.QuestionCount = 10
+	}
+
+	if cfg.Deliver.Capacity == 0 {
+		cfg.Deliver.Capacity = 12
 	}
 }

@@ -4,6 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/fox-one/pkg/mq"
+	"github.com/fox-one/pkg/mq/sqs"
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/plugin/parser"
@@ -41,4 +46,21 @@ func provideParser() core.CommandParser {
 
 func provideShuffler() core.CourseShuffler {
 	return shuffler.Rand()
+}
+
+func provideAwsSession() *session.Session {
+	s, err := session.NewSession(&aws.Config{
+		Region:      aws.String(cfg.AWS.Region),
+		Credentials: credentials.NewStaticCredentials(cfg.AWS.Key, cfg.AWS.Secret, ""),
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return s
+}
+
+func providePubSub(s *session.Session) mq.PubSub {
+	return sqs.New(s, cfg.AWS.QueueURL)
 }

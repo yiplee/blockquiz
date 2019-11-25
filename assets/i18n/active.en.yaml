@@ -14,6 +14,8 @@ usage: |
 usage_start_task: Click the "Start Answering Questions" button to start answering questions.
 usage_finish_task: You had completed all questions today.
 
+cannot_find_course: No questions for the time being, please come back later.
+
 show_course: Learning Course
 show_question: Start answering questions
 answer_right: 🎉 Congratulations, you answered correctly.

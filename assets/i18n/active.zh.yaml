@@ -14,6 +14,8 @@ usage: |
 usage_start_task: 请点击"开始答题"按钮开始答题。
 usage_finish_task: 你已经完成了今天所有的题。
 
+cannot_find_course: 暂时没有题，请待会再来。
+
 show_course: 学习课程
 show_question: 开始答题
 answer_right: 🎉 恭喜你回答正确

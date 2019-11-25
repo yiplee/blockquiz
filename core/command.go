@@ -24,6 +24,7 @@ type (
 	Command struct {
 		ID        int64      `gorm:"PRIMARY_KEY" json:"id,omitempty"`
 		CreatedAt time.Time  `json:"created_at,omitempty"`
+		UpdatedAt time.Time  `json:"updated_at,omitempty"`
 		DeletedAt *time.Time `json:"deleted_at,omitempty"`
 		TraceID   string     `gorm:"size:36" json:"trace_id,omitempty"`
 		UserID    string     `gorm:"size:36" json:"user_id,omitempty"`

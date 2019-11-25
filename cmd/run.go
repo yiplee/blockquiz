@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/yiplee/blockquiz/operator/deliver"
@@ -27,6 +26,7 @@ func runEngine(ctx context.Context) error {
 
 	db := provideDB()
 	defer db.Close()
+
 	users := provideUserStore(db)
 	commands := provideCommandStore(db)
 	commandParser := provideParser()
@@ -36,8 +36,11 @@ func runEngine(ctx context.Context) error {
 	tasks := provideTaskStore(db)
 	localizer := provideLocalizer()
 
+	awsSession := provideAwsSession()
+	pubsub := providePubSub(awsSession)
+
 	g.Go(func() error {
-		h := hub.New(commands, commandParser, hub.Config{
+		h := hub.New(commands, commandParser, pubsub, hub.Config{
 			ClientID:   cfg.Bot.ClientID,
 			SessionID:  cfg.Bot.SessionID,
 			SessionKey: cfg.Bot.SessionKey,
@@ -55,6 +58,7 @@ func runEngine(ctx context.Context) error {
 			courses,
 			wallets,
 			tasks,
+			pubsub,
 			localizer,
 			deliver.Config{
 				ClientID:      cfg.Bot.ClientID,
@@ -66,7 +70,7 @@ func runEngine(ctx context.Context) error {
 			},
 		)
 
-		return d.Run(ctx, 200*time.Millisecond)
+		return d.Run(ctx, cfg.Deliver.Capacity)
 	})
 
 	return g.Wait()

@@ -142,6 +142,19 @@ func (c *commandContext) showUsageButtons(ctx context.Context, finish bool) *bot
 	return req
 }
 
+func (c *commandContext) showMissingCourse(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "missing course"),
+	}
+
+	data := c.Localizer().MustLocalize("cannot_find_course")
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
 func (c *commandContext) showCourseContent(ctx context.Context) *bot.MessageRequest {
 	req := &bot.MessageRequest{
 		Category:       "PLAIN_TEXT",

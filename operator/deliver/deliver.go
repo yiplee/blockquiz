@@ -2,17 +2,16 @@ package deliver
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
 	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/mq"
 	"github.com/fox-one/pkg/text/localizer"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/store"
 	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
 )
 
 const limit = 500
@@ -25,6 +24,7 @@ type Deliver struct {
 	courses   core.CourseStore
 	wallets   core.WalletStore
 	tasks     core.TaskStore
+	sub       mq.Sub
 	localizer *localizer.Localizer
 	config    Config
 }
@@ -37,6 +37,7 @@ func New(
 	courses core.CourseStore,
 	wallets core.WalletStore,
 	tasks core.TaskStore,
+	sub mq.Sub,
 	localizer *localizer.Localizer,
 	config Config,
 ) *Deliver {
@@ -52,71 +53,61 @@ func New(
 		courses:   courses,
 		wallets:   wallets,
 		tasks:     tasks,
+		sub:       sub,
 		localizer: localizer,
 		config:    config,
 	}
 }
 
-func (d *Deliver) Run(ctx context.Context, dur time.Duration) error {
+func (d *Deliver) Run(ctx context.Context, capacity int) error {
 	log := logger.FromContext(ctx).WithField("operator", "deliver")
 	ctx = logger.WithContext(ctx, log)
 
+	var g errgroup.Group
+	for i := 0; i < capacity; i++ {
+		g.Go(func() error {
+			return d.start(ctx)
+		})
+	}
+	return g.Wait()
+}
+
+func (d *Deliver) start(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(dur):
-			_ = d.run(ctx)
+		default:
+			_ = d.poll(ctx)
 		}
 	}
 }
 
-func (d *Deliver) run(ctx context.Context) error {
+func (d *Deliver) poll(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
-	list, err := d.commands.ListPending(ctx, limit)
+	data, callback, err := d.sub.Receive(ctx, &mq.ReceiveOption{VisibilityTimeout: 10 * time.Second})
 	if err != nil {
-		log.WithError(err).Error("list pending commands")
+		log.WithError(err).Error("receive cmd message")
 		return err
 	}
 
-	// 将 commands 按用户分组然后并行处理
-	groups := groupCommands(list)
-	var g errgroup.Group
-	// 最多同时处理五个用户
-	sem := semaphore.NewWeighted(5)
-	for _, group := range groups {
-		group := group // copy ref
-
-		if err := sem.Acquire(ctx, 1); err != nil {
-			return err
-		}
-
-		g.Go(func() error {
-			defer sem.Release(1)
-
-			for _, cmd := range group {
-				if err := d.handleCommand(ctx, cmd); err != nil {
-					log := log.WithField("action", cmd.Action)
-					log.WithError(err).Error("handle command %d", cmd.ID)
-					return err
-				}
-			}
-
-			return nil
-		})
+	var cmd core.Command
+	if err := jsoniter.UnmarshalFromString(data, &cmd); err != nil {
+		return callback.Finish(ctx)
 	}
 
-	if err := g.Wait(); err != nil {
-		return err
+	if err := d.commands.Create(ctx, &cmd); err != nil {
+		log.WithError(err).Error("create command")
+		return callback.Delay(ctx, time.Second)
 	}
 
-	if err := d.commands.Deletes(ctx, list); err != nil {
-		log.WithError(err).Error("delete commands")
-		return err
+	if err := d.handleCommand(ctx, &cmd); err != nil {
+		log.WithError(err).Errorf("handle command %d %s", cmd.ID, cmd.Action)
+		return callback.Delay(ctx, time.Second)
 	}
 
-	return nil
+	return callback.Finish(ctx)
 }
 
 func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
@@ -163,23 +154,6 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	}
 
 	return nil
-}
-
-func (d *Deliver) pickRandomCourse(ctx context.Context, user *core.User) (*core.Course, error) {
-	list, err := d.courses.ListLanguage(ctx, user.Language)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(list) == 0 {
-		return nil, store.ErrNotFound
-	}
-
-	rand.Shuffle(len(list), func(i, j int) {
-		list[i], list[j] = list[j], list[i]
-	})
-
-	return list[0], nil
 }
 
 func (d *Deliver) createTask(ctx context.Context, user *core.User, at time.Time) (*core.Task, *core.Course, error) {
