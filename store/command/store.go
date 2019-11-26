@@ -25,9 +25,7 @@ func (s *store) Create(ctx context.Context, command *core.Command) error {
 
 	err := tx.Create(command).Error
 	if err != nil {
-		var count int64
-		tx.Model(command).Where("trace_id = ?", command.TraceID).Count(&count)
-		if count > 0 {
+		if err := tx.Where("trace_id = ?", command.TraceID).First(command).Error; err == nil {
 			return nil
 		}
 	}
