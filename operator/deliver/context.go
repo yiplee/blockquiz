@@ -113,6 +113,7 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 		if blocked, _ := task.IsBlocked(); blocked {
 			// block 状态所有输入都当答错题处理
 			cmd.Action = core.ActionAnswerQuestion
+			cmd.Question = task.Question
 			cmd.Answer = -1
 		} else if cmd.Action != core.ActionAnswerQuestion {
 			// cmd.Action = core.ActionShowQuestion
@@ -185,6 +186,10 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 		requests = append(requests, c.showQuestionChoiceButtons(ctx))
 	case core.ActionAnswerQuestion:
 		task := c.task
+
+		if task.Question != cmd.Question {
+			break
+		}
 
 		if right := c.question.Answer == cmd.Answer; right {
 			requests = append(requests, c.showAnswerFeedback(ctx, true))
