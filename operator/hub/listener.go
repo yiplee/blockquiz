@@ -69,16 +69,27 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		cmd.UserID = msg.UserId
 		cmd.Source = source
 
-		data, _ := jsoniter.MarshalToString(cmd)
-		if err := h.pub.Publish(ctx, data, &mq.PublishOption{
-			GroupID:   cmd.UserID,
-			TraceID:   cmd.TraceID,
-			ExpiredAt: time.Now().Add(time.Hour),
-		}); err != nil {
-			log.WithError(err).Error("pub cmd message")
+		if err := h.handleCmd(ctx, cmd); err != nil {
+			log.WithError(err).Error("pub cmd")
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (h *Hub) handleCmd(ctx context.Context, cmd *core.Command) error {
+	if err := h.sem.Acquire(ctx, 1); err != nil {
+		return err
+	}
+	defer h.sem.Release(1)
+
+	data, _ := jsoniter.MarshalToString(cmd)
+	go h.pub.Publish(ctx, data, &mq.PublishOption{
+		GroupID:   cmd.UserID,
+		TraceID:   cmd.TraceID,
+		ExpiredAt: time.Now().Add(time.Hour),
+	})
 
 	return nil
 }

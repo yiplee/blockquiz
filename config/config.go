@@ -100,6 +100,6 @@ func defaultConfig(cfg *Config) {
 	}
 
 	if cfg.Deliver.Capacity == 0 {
-		cfg.Deliver.Capacity = 12
+		cfg.Deliver.Capacity = 24
 	}
 }

@@ -23,6 +23,7 @@
         <method importPath="strings" receiver="*Builder" name="WriteRune" />
         <method importPath="math/rand" receiver="*Rand" name="Read" />
         <method importPath="os" receiver="*File" name="Close" />
+        <method importPath="github.com/fox-one/pkg/mq" receiver="Pub" name="Publish" />
       </methods>
     </inspection_tool>
   </profile>
