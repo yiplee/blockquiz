@@ -1,8 +1,9 @@
 package shuffler
 
 import (
-	"strconv"
+	"fmt"
 
+	"github.com/fox-one/pkg/uuid"
 	"github.com/yiplee/blockquiz/core"
 )
 
@@ -13,7 +14,7 @@ func Rand() core.CourseShuffler {
 }
 
 func (r *random) Shuffle(course *core.Course, userID string, questionCount int) {
-	seed := userID + course.Title
+	seed := uuid.Modify(userID, course.Title)
 
 	questions := course.Questions
 	Sort(seed, len(questions), func(i, j int) {
@@ -25,7 +26,8 @@ func (r *random) Shuffle(course *core.Course, userID string, questionCount int) 
 	}
 
 	for idx, question := range questions {
-		Sort(seed+strconv.Itoa(idx), len(question.Choices), func(i, j int) {
+		seed := uuid.Modify(seed, fmt.Sprintf("question %d", idx+1))
+		Sort(seed, len(question.Choices), func(i, j int) {
 			switch question.Answer {
 			case i:
 				question.Answer = j
