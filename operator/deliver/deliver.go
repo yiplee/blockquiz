@@ -155,7 +155,7 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	}
 
 	// update task
-	if c.updateTask {
+	if c.updateTask && len(requests) > 0 {
 		if err := d.tasks.UpdateVersion(ctx, c.task, cmd.ID); err != nil {
 			return err
 		}

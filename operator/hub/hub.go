@@ -10,7 +10,6 @@ import (
 	"github.com/fox-one/pkg/mq"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
-	"golang.org/x/sync/semaphore"
 )
 
 type Hub struct {
@@ -18,7 +17,6 @@ type Hub struct {
 	parser   core.CommandParser
 	pub      mq.Pub
 	config   Config
-	sem      *semaphore.Weighted
 }
 
 func New(
@@ -36,7 +34,6 @@ func New(
 		parser:   parser,
 		pub:      pub,
 		config:   config,
-		sem:      semaphore.NewWeighted(10),
 	}
 }
 
