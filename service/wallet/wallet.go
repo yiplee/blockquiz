@@ -3,10 +3,10 @@ package wallet
 import (
 	"context"
 
-	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/MixinNetwork/go-number"
 	"github.com/asaskevich/govalidator"
 	"github.com/yiplee/blockquiz/core"
+	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
 type Config struct {

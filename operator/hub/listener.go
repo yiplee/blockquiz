@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/mq"
 	"github.com/fox-one/pkg/number"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
+	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
 func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string) error {

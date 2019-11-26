@@ -3,14 +3,16 @@ module github.com/yiplee/blockquiz
 go 1.13
 
 require (
-	github.com/MixinNetwork/bot-api-go-client v1.1.5-0.20191125063454-73aa0222ce2d
 	github.com/MixinNetwork/go-number v0.0.0-20180814121220-f48e2574d9ef
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/aws/aws-sdk-go v1.25.36
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fox-one/pkg v1.1.8
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
+	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/jinzhu/gorm v1.9.11
 	github.com/json-iterator/go v1.1.8

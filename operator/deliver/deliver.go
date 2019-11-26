@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/mq"
 	"github.com/fox-one/pkg/text/localizer"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
+	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 	"golang.org/x/sync/errgroup"
 )
 

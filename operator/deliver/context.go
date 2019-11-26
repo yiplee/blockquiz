@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/store"
+	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
 type commandContext struct {

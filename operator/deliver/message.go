@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/MixinNetwork/bot-api-go-client"
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
+	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
 // func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
@@ -250,8 +250,9 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 	buttons := make([]button, len(c.question.Choices))
 	for idx := range buttons {
 		cmd := &core.Command{
-			Action: core.ActionAnswerQuestion,
-			Answer: idx,
+			Action:   core.ActionAnswerQuestion,
+			Answer:   idx,
+			Question: c.task.Question,
 		}
 		buttons[idx] = c.newButton(
 			core.AnswerToString(idx),
@@ -299,7 +300,12 @@ func (c *commandContext) showWaitBlock(ctx context.Context) *bot.MessageRequest 
 		MessageId:      uuid.Modify(c.traceID, "wait block"),
 	}
 
-	data := c.Localizer().MustLocalize("wait_block")
+	_, dur := c.task.IsBlocked()
+	minutes := int(dur.Minutes())
+	if minutes == 0 {
+		minutes = 1
+	}
+	data := c.Localizer().MustLocalize("wait_block", "wait", strconv.Itoa(minutes))
 	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
 	return req
 }

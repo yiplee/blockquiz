@@ -1,0 +1,805 @@
+language: ""
+summary: ""
+content: ""
+url: ""
+questions:
+  -
+    content: '75 x 8 = ?'
+    choices:
+      - '83'
+      - '67'
+      - '600'
+      - '3'
+    answer: 2
+  -
+    content: '35 + 47 = ?'
+    choices:
+      - '82'
+      - '-12'
+      - '1645'
+      - '35'
+    answer: 0
+  -
+    content: '5 + 35 = ?'
+    choices:
+      - '40'
+      - '-30'
+      - '175'
+      - '5'
+    answer: 0
+  -
+    content: '68 x 94 = ?'
+    choices:
+      - '162'
+      - '-26'
+      - '6392'
+      - '68'
+    answer: 2
+  -
+    content: '3 x 3 = ?'
+    choices:
+      - '6'
+      - '0'
+      - '9'
+      - '0'
+    answer: 2
+  -
+    content: '48 - 14 = ?'
+    choices:
+      - '62'
+      - '34'
+      - '672'
+      - '6'
+    answer: 1
+  -
+    content: '80 x 99 = ?'
+    choices:
+      - '179'
+      - '-19'
+      - '7920'
+      - '80'
+    answer: 2
+  -
+    content: '56 - 22 = ?'
+    choices:
+      - '78'
+      - '34'
+      - '1232'
+      - '12'
+    answer: 1
+  -
+    content: '14 x 67 = ?'
+    choices:
+      - '81'
+      - '-53'
+      - '938'
+      - '14'
+    answer: 2
+  -
+    content: '27 + 77 = ?'
+    choices:
+      - '104'
+      - '-50'
+      - '2079'
+      - '27'
+    answer: 0
+  -
+    content: '14 + 45 = ?'
+    choices:
+      - '59'
+      - '-31'
+      - '630'
+      - '14'
+    answer: 0
+  -
+    content: '66 + 72 = ?'
+    choices:
+      - '138'
+      - '-6'
+      - '4752'
+      - '66'
+    answer: 0
+  -
+    content: '52 - 58 = ?'
+    choices:
+      - '110'
+      - '-6'
+      - '3016'
+      - '52'
+    answer: 1
+  -
+    content: '87 x 100 = ?'
+    choices:
+      - '187'
+      - '-13'
+      - '8700'
+      - '87'
+    answer: 2
+  -
+    content: '65 - 81 = ?'
+    choices:
+      - '146'
+      - '-16'
+      - '5265'
+      - '65'
+    answer: 1
+  -
+    content: '96 x 15 = ?'
+    choices:
+      - '111'
+      - '81'
+      - '1440'
+      - '6'
+    answer: 2
+  -
+    content: '21 - 97 = ?'
+    choices:
+      - '118'
+      - '-76'
+      - '2037'
+      - '21'
+    answer: 1
+  -
+    content: '23 + 24 = ?'
+    choices:
+      - '47'
+      - '-1'
+      - '552'
+      - '23'
+    answer: 0
+  -
+    content: '9 + 53 = ?'
+    choices:
+      - '62'
+      - '-44'
+      - '477'
+      - '9'
+    answer: 0
+  -
+    content: '10 % 46 = ?'
+    choices:
+      - '56'
+      - '-36'
+      - '460'
+      - '10'
+    answer: 3
+  -
+    content: '57 - 100 = ?'
+    choices:
+      - '157'
+      - '-43'
+      - '5700'
+      - '57'
+    answer: 1
+  -
+    content: '39 % 35 = ?'
+    choices:
+      - '74'
+      - '4'
+      - '1365'
+      - '4'
+    answer: 3
+  -
+    content: '6 + 28 = ?'
+    choices:
+      - '34'
+      - '-22'
+      - '168'
+      - '6'
+    answer: 0
+  -
+    content: '37 x 82 = ?'
+    choices:
+      - '119'
+      - '-45'
+      - '3034'
+      - '37'
+    answer: 2
+  -
+    content: '75 % 100 = ?'
+    choices:
+      - '175'
+      - '-25'
+      - '7500'
+      - '75'
+    answer: 3
+  -
+    content: '79 x 44 = ?'
+    choices:
+      - '123'
+      - '35'
+      - '3476'
+      - '35'
+    answer: 2
+  -
+    content: '59 + 20 = ?'
+    choices:
+      - '79'
+      - '39'
+      - '1180'
+      - '19'
+    answer: 0
+  -
+    content: '77 + 44 = ?'
+    choices:
+      - '121'
+      - '33'
+      - '3388'
+      - '33'
+    answer: 0
+  -
+    content: '61 + 36 = ?'
+    choices:
+      - '97'
+      - '25'
+      - '2196'
+      - '25'
+    answer: 0
+  -
+    content: '52 - 84 = ?'
+    choices:
+      - '136'
+      - '-32'
+      - '4368'
+      - '52'
+    answer: 1
+  -
+    content: '1 % 1 = ?'
+    choices:
+      - '2'
+      - '0'
+      - '1'
+      - '0'
+    answer: 3
+  -
+    content: '55 - 92 = ?'
+    choices:
+      - '147'
+      - '-37'
+      - '5060'
+      - '55'
+    answer: 1
+  -
+    content: '100 - 82 = ?'
+    choices:
+      - '182'
+      - '18'
+      - '8200'
+      - '18'
+    answer: 1
+  -
+    content: '6 % 90 = ?'
+    choices:
+      - '96'
+      - '-84'
+      - '540'
+      - '6'
+    answer: 3
+  -
+    content: '97 + 76 = ?'
+    choices:
+      - '173'
+      - '21'
+      - '7372'
+      - '21'
+    answer: 0
+  -
+    content: '64 - 62 = ?'
+    choices:
+      - '126'
+      - '2'
+      - '3968'
+      - '2'
+    answer: 1
+  -
+    content: '46 x 5 = ?'
+    choices:
+      - '51'
+      - '41'
+      - '230'
+      - '1'
+    answer: 2
+  -
+    content: '58 % 6 = ?'
+    choices:
+      - '64'
+      - '52'
+      - '348'
+      - '4'
+    answer: 3
+  -
+    content: '59 + 70 = ?'
+    choices:
+      - '129'
+      - '-11'
+      - '4130'
+      - '59'
+    answer: 0
+  -
+    content: '25 - 95 = ?'
+    choices:
+      - '120'
+      - '-70'
+      - '2375'
+      - '25'
+    answer: 1
+  -
+    content: '10 + 47 = ?'
+    choices:
+      - '57'
+      - '-37'
+      - '470'
+      - '10'
+    answer: 0
+  -
+    content: '56 + 93 = ?'
+    choices:
+      - '149'
+      - '-37'
+      - '5208'
+      - '56'
+    answer: 0
+  -
+    content: '2 - 96 = ?'
+    choices:
+      - '98'
+      - '-94'
+      - '192'
+      - '2'
+    answer: 1
+  -
+    content: '50 x 12 = ?'
+    choices:
+      - '62'
+      - '38'
+      - '600'
+      - '2'
+    answer: 2
+  -
+    content: '94 - 88 = ?'
+    choices:
+      - '182'
+      - '6'
+      - '8272'
+      - '6'
+    answer: 1
+  -
+    content: '99 x 57 = ?'
+    choices:
+      - '156'
+      - '42'
+      - '5643'
+      - '42'
+    answer: 2
+  -
+    content: '36 x 35 = ?'
+    choices:
+      - '71'
+      - '1'
+      - '1260'
+      - '1'
+    answer: 2
+  -
+    content: '33 + 38 = ?'
+    choices:
+      - '71'
+      - '-5'
+      - '1254'
+      - '33'
+    answer: 0
+  -
+    content: '83 % 93 = ?'
+    choices:
+      - '176'
+      - '-10'
+      - '7719'
+      - '83'
+    answer: 3
+  -
+    content: '31 + 48 = ?'
+    choices:
+      - '79'
+      - '-17'
+      - '1488'
+      - '31'
+    answer: 0
+  -
+    content: '59 + 21 = ?'
+    choices:
+      - '80'
+      - '38'
+      - '1239'
+      - '17'
+    answer: 0
+  -
+    content: '74 - 63 = ?'
+    choices:
+      - '137'
+      - '11'
+      - '4662'
+      - '11'
+    answer: 1
+  -
+    content: '42 x 60 = ?'
+    choices:
+      - '102'
+      - '-18'
+      - '2520'
+      - '42'
+    answer: 2
+  -
+    content: '72 % 92 = ?'
+    choices:
+      - '164'
+      - '-20'
+      - '6624'
+      - '72'
+    answer: 3
+  -
+    content: '22 % 54 = ?'
+    choices:
+      - '76'
+      - '-32'
+      - '1188'
+      - '22'
+    answer: 3
+  -
+    content: '56 % 70 = ?'
+    choices:
+      - '126'
+      - '-14'
+      - '3920'
+      - '56'
+    answer: 3
+  -
+    content: '90 + 43 = ?'
+    choices:
+      - '133'
+      - '47'
+      - '3870'
+      - '4'
+    answer: 0
+  -
+    content: '44 x 44 = ?'
+    choices:
+      - '88'
+      - '0'
+      - '1936'
+      - '0'
+    answer: 2
+  -
+    content: '38 + 15 = ?'
+    choices:
+      - '53'
+      - '23'
+      - '570'
+      - '8'
+    answer: 0
+  -
+    content: '35 + 99 = ?'
+    choices:
+      - '134'
+      - '-64'
+      - '3465'
+      - '35'
+    answer: 0
+  -
+    content: '59 x 77 = ?'
+    choices:
+      - '136'
+      - '-18'
+      - '4543'
+      - '59'
+    answer: 2
+  -
+    content: '10 + 11 = ?'
+    choices:
+      - '21'
+      - '-1'
+      - '110'
+      - '10'
+    answer: 0
+  -
+    content: '61 + 16 = ?'
+    choices:
+      - '77'
+      - '45'
+      - '976'
+      - '13'
+    answer: 0
+  -
+    content: '40 % 74 = ?'
+    choices:
+      - '114'
+      - '-34'
+      - '2960'
+      - '40'
+    answer: 3
+  -
+    content: '78 - 64 = ?'
+    choices:
+      - '142'
+      - '14'
+      - '4992'
+      - '14'
+    answer: 1
+  -
+    content: '76 x 29 = ?'
+    choices:
+      - '105'
+      - '47'
+      - '2204'
+      - '18'
+    answer: 2
+  -
+    content: '63 + 67 = ?'
+    choices:
+      - '130'
+      - '-4'
+      - '4221'
+      - '63'
+    answer: 0
+  -
+    content: '26 % 94 = ?'
+    choices:
+      - '120'
+      - '-68'
+      - '2444'
+      - '26'
+    answer: 3
+  -
+    content: '73 x 40 = ?'
+    choices:
+      - '113'
+      - '33'
+      - '2920'
+      - '33'
+    answer: 2
+  -
+    content: '62 x 63 = ?'
+    choices:
+      - '125'
+      - '-1'
+      - '3906'
+      - '62'
+    answer: 2
+  -
+    content: '56 x 25 = ?'
+    choices:
+      - '81'
+      - '31'
+      - '1400'
+      - '6'
+    answer: 2
+  -
+    content: '64 x 98 = ?'
+    choices:
+      - '162'
+      - '-34'
+      - '6272'
+      - '64'
+    answer: 2
+  -
+    content: '59 - 85 = ?'
+    choices:
+      - '144'
+      - '-26'
+      - '5015'
+      - '59'
+    answer: 1
+  -
+    content: '53 % 66 = ?'
+    choices:
+      - '119'
+      - '-13'
+      - '3498'
+      - '53'
+    answer: 3
+  -
+    content: '10 - 78 = ?'
+    choices:
+      - '88'
+      - '-68'
+      - '780'
+      - '10'
+    answer: 1
+  -
+    content: '87 + 11 = ?'
+    choices:
+      - '98'
+      - '76'
+      - '957'
+      - '10'
+    answer: 0
+  -
+    content: '60 x 16 = ?'
+    choices:
+      - '76'
+      - '44'
+      - '960'
+      - '12'
+    answer: 2
+  -
+    content: '92 % 22 = ?'
+    choices:
+      - '114'
+      - '70'
+      - '2024'
+      - '4'
+    answer: 3
+  -
+    content: '29 + 74 = ?'
+    choices:
+      - '103'
+      - '-45'
+      - '2146'
+      - '29'
+    answer: 0
+  -
+    content: '75 + 65 = ?'
+    choices:
+      - '140'
+      - '10'
+      - '4875'
+      - '10'
+    answer: 0
+  -
+    content: '72 % 34 = ?'
+    choices:
+      - '106'
+      - '38'
+      - '2448'
+      - '4'
+    answer: 3
+  -
+    content: '14 + 43 = ?'
+    choices:
+      - '57'
+      - '-29'
+      - '602'
+      - '14'
+    answer: 0
+  -
+    content: '27 % 52 = ?'
+    choices:
+      - '79'
+      - '-25'
+      - '1404'
+      - '27'
+    answer: 3
+  -
+    content: '4 x 82 = ?'
+    choices:
+      - '86'
+      - '-78'
+      - '328'
+      - '4'
+    answer: 2
+  -
+    content: '92 + 47 = ?'
+    choices:
+      - '139'
+      - '45'
+      - '4324'
+      - '45'
+    answer: 0
+  -
+    content: '15 + 87 = ?'
+    choices:
+      - '102'
+      - '-72'
+      - '1305'
+      - '15'
+    answer: 0
+  -
+    content: '7 + 67 = ?'
+    choices:
+      - '74'
+      - '-60'
+      - '469'
+      - '7'
+    answer: 0
+  -
+    content: '89 x 22 = ?'
+    choices:
+      - '111'
+      - '67'
+      - '1958'
+      - '1'
+    answer: 2
+  -
+    content: '37 + 61 = ?'
+    choices:
+      - '98'
+      - '-24'
+      - '2257'
+      - '37'
+    answer: 0
+  -
+    content: '8 + 73 = ?'
+    choices:
+      - '81'
+      - '-65'
+      - '584'
+      - '8'
+    answer: 0
+  -
+    content: '2 % 37 = ?'
+    choices:
+      - '39'
+      - '-35'
+      - '74'
+      - '2'
+    answer: 3
+  -
+    content: '7 x 61 = ?'
+    choices:
+      - '68'
+      - '-54'
+      - '427'
+      - '7'
+    answer: 2
+  -
+    content: '16 % 100 = ?'
+    choices:
+      - '116'
+      - '-84'
+      - '1600'
+      - '16'
+    answer: 3
+  -
+    content: '100 + 85 = ?'
+    choices:
+      - '185'
+      - '15'
+      - '8500'
+      - '15'
+    answer: 0
+  -
+    content: '71 + 45 = ?'
+    choices:
+      - '116'
+      - '26'
+      - '3195'
+      - '26'
+    answer: 0
+  -
+    content: '76 + 96 = ?'
+    choices:
+      - '172'
+      - '-20'
+      - '7296'
+      - '76'
+    answer: 0
+  -
+    content: '44 x 47 = ?'
+    choices:
+      - '91'
+      - '-3'
+      - '2068'
+      - '44'
+    answer: 2
+  -
+    content: '98 % 38 = ?'
+    choices:
+      - '136'
+      - '60'
+      - '3724'
+      - '22'
+    answer: 3
+  -
+    content: '71 % 11 = ?'
+    choices:
+      - '82'
+      - '60'
+      - '781'
+      - '5'
+    answer: 3
+  -
+    content: '62 % 97 = ?'
+    choices:
+      - '159'
+      - '-35'
+      - '6014'
+      - '62'
+    answer: 3
