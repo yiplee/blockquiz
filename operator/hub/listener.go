@@ -19,6 +19,10 @@ import (
 func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string) error {
 	log := logger.FromContext(ctx).WithField("category", msg.Category)
 
+	if msg.UserId == "00000000-0000-0000-0000-000000000000" {
+		return nil
+	}
+
 	data, err := base64.StdEncoding.DecodeString(msg.Data)
 	if err != nil {
 		log.WithError(err).Warn("decode blaze message data")

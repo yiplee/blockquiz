@@ -97,6 +97,10 @@ func (d *Deliver) poll(ctx context.Context) error {
 		return callback.Finish(ctx)
 	}
 
+	if cmd.UserID == "00000000-0000-0000-0000-000000000000" {
+		return callback.Finish(ctx)
+	}
+
 	if err := d.commands.Create(ctx, &cmd); err != nil {
 		log.WithError(err).Error("create command")
 		return callback.Delay(ctx, time.Second)
@@ -122,7 +126,11 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	}
 
 	log.Debugf("pre handle cmd %s", cmd.Action)
-	c.preHandleCommand(ctx, cmd)
+	if skip := c.preHandleCommand(ctx, cmd); skip {
+		log.Debugf("skip cmd %s", cmd.Action)
+		return nil
+	}
+
 	log.Debugf("handle cmd %s", cmd.Action)
 
 	requests, err := c.handleCommand(ctx, cmd)

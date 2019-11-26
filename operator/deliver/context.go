@@ -95,7 +95,7 @@ func (c *commandContext) Localizer() *localizer.Localizer {
 	return localizer.WithLanguage(c.d.localizer, c.Language())
 }
 
-func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command) {
+func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command) (skip bool) {
 	task := c.task
 
 	if task == nil {
@@ -113,7 +113,8 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 			cmd.Action = core.ActionAnswerQuestion
 			cmd.Answer = -1
 		} else if cmd.Action != core.ActionAnswerQuestion {
-			cmd.Action = core.ActionShowQuestion
+			// cmd.Action = core.ActionShowQuestion
+			skip = true
 		}
 
 		return
