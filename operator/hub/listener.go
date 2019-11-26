@@ -69,12 +69,10 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		cmd.UserID = msg.UserId
 		cmd.Source = source
 
-		start := time.Now()
 		if err := h.handleCmd(ctx, cmd); err != nil {
 			log.WithError(err).Error("pub cmd")
 			return err
 		}
-		log.Debugf("pub cmd cost %s", time.Since(start))
 	}
 
 	return nil

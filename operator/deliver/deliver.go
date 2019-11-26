@@ -127,13 +127,10 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 		log = log.WithField("task", c.task.ID).WithField("title", c.course.Title)
 	}
 
-	log.Debugf("pre handle cmd %s", cmd.Action)
 	if skip := c.preHandleCommand(ctx, cmd); skip {
 		log.Debugf("skip cmd %s", cmd.Action)
 		return nil
 	}
-
-	log.Debugf("handle cmd %s", cmd.Action)
 
 	requests, err := c.handleCommand(ctx, cmd)
 	if err != nil {
