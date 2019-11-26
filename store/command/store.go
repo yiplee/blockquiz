@@ -20,7 +20,19 @@ func New(db *db.DB, softDelete bool) core.CommandStore {
 }
 
 func (s *store) Create(ctx context.Context, command *core.Command) error {
-	return s.db.Update().Unscoped().Where("trace_id = ?", command.TraceID).FirstOrCreate(command).Error
+	tx := s.db.Update().Unscoped()
+	tx.Callback().Create().Remove("gorm:force_reload_after_create")
+
+	err := tx.Create(command).Error
+	if err != nil {
+		var count int64
+		tx.Model(command).Where("trace_id = ?", command.TraceID).Count(&count)
+		if count > 0 {
+			return nil
+		}
+	}
+
+	return err
 }
 
 func (s *store) Delete(ctx context.Context, command *core.Command) error {
@@ -43,6 +55,6 @@ func (s *store) Deletes(ctx context.Context, commands []*core.Command) error {
 
 func (s *store) ListPending(ctx context.Context, limit int) ([]*core.Command, error) {
 	var commands []*core.Command
-	err := s.db.View().Where("deleted_at IS NULL").Limit(limit).Find(&commands).Error
+	err := s.db.View().Limit(limit).Find(&commands).Error
 	return commands, err
 }

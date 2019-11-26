@@ -21,6 +21,7 @@ show_question: 开始答题
 answer_right: 🎉 恭喜你回答正确
 answer_wrong: 回答错误
 answer_wrong_with_wait: 回答错误，等{{.wait}}分钟再来答题，请多学习
+wait_block: 请等待{{.wait}}分钟再来答题
 answer_wrong_with_right_choice: 回答错误，正确答案是 {{.answer}}
 next_question: 下一题
 finish_course: 你已完成课程 {{.title}}，收获颇丰吧 😊

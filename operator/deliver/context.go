@@ -74,9 +74,11 @@ func (d *Deliver) prepareContext(ctx context.Context, cmd *core.Command) (*comma
 
 	title := core.CourseTitleByDate(cmd.CreatedAt)
 	if task, err := d.tasks.FindUser(ctx, c.user.MixinID, title); err == nil {
-		if course, err := d.courses.Find(ctx, task.Title, task.Language); err == nil {
-			d.shuffler.Shuffle(course, c.user.MixinID, d.config.QuestionCount)
-			c.bindTask(task, course, task.Question)
+		if blocked, remain := task.IsBlocked(); !blocked || remain > time.Second {
+			if course, err := d.courses.Find(ctx, task.Title, task.Language); err == nil {
+				d.shuffler.Shuffle(course, c.user.MixinID, d.config.QuestionCount)
+				c.bindTask(task, course, task.Question)
+			}
 		}
 	}
 
@@ -128,6 +130,8 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 
 		return
 	}
+
+	return
 }
 
 func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) ([]*bot.MessageRequest, error) {
@@ -193,8 +197,10 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 				requests = append(requests, c.showFinishCourse(ctx))
 				task.State = core.TaskStateFinish
 			}
+		} else if blocked, _ := task.IsBlocked(); blocked {
+			requests = append(requests, c.showWaitBlock(ctx))
 		} else {
-			if blocked, _ := task.IsBlocked(); !blocked && task.BlockDuration > 0 {
+			if task.BlockDuration > 0 {
 				dur := time.Duration(task.BlockDuration) * time.Second
 				task.BlockUntil = time.Now().Add(dur)
 			}

@@ -291,6 +291,19 @@ func (c *commandContext) showAnswerFeedback(ctx context.Context, right bool) *bo
 	return req
 }
 
+func (c *commandContext) showWaitBlock(ctx context.Context) *bot.MessageRequest {
+	req := &bot.MessageRequest{
+		Category:       "PLAIN_TEXT",
+		RecipientId:    c.user.MixinID,
+		ConversationId: c.conversationID,
+		MessageId:      uuid.Modify(c.traceID, "wait block"),
+	}
+
+	data := c.Localizer().MustLocalize("wait_block")
+	req.Data = base64.StdEncoding.EncodeToString([]byte(data))
+	return req
+}
+
 func (c *commandContext) showFinishCourse(ctx context.Context) *bot.MessageRequest {
 	req := &bot.MessageRequest{
 		Category:       "PLAIN_TEXT",

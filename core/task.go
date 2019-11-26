@@ -37,8 +37,10 @@ type (
 )
 
 func (t *Task) IsBlocked() (blocked bool, remain time.Duration) {
-	if dur := time.Until(t.BlockUntil); dur > 0 {
-		return true, dur
+	blocked = t.BlockUntil.After(t.CreatedAt)
+	remain = time.Until(t.BlockUntil)
+	if remain < 0 {
+		remain = 0
 	}
 
 	return
