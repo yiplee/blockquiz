@@ -10,6 +10,7 @@ type Task struct {
 	UpdatedAt     int64   `json:"updated_at,omitempty"`
 	Language      string  `json:"language,omitempty"`
 	UserID        string  `json:"user_id,omitempty"`
+	Title         string  `json:"title,omitempty"`
 	Creator       string  `json:"creator,omitempty"`
 	Course        *Course `json:"course,omitempty"`
 	Question      int     `json:"question,omitempty"`
@@ -28,6 +29,7 @@ func TaskView(task *core.Task, course *core.Course) *Task {
 		Language:      task.Language,
 		UserID:        task.UserID,
 		Creator:       task.Creator,
+		Title:         task.Title,
 		Question:      task.Question,
 		State:         task.State,
 		BlockUntil:    task.BlockUntil.Unix(),
