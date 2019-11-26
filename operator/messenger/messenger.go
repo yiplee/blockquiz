@@ -64,7 +64,7 @@ func (m *Messenger) run(ctx context.Context) error {
 		}
 	}
 
-	log.Debugf("pst %d messages in batch", len(requests))
+	log.Debugf("post %d messages in batch", len(requests))
 	if err := bot.PostMessages(ctx, requests, m.cfg.ClientID, m.cfg.SessionID, m.cfg.SessionKey); err != nil {
 		log.WithError(err).Error("post messages")
 		return err
