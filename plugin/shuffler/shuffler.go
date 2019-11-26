@@ -1,6 +1,8 @@
 package shuffler
 
 import (
+	"strconv"
+
 	"github.com/yiplee/blockquiz/core"
 )
 
@@ -22,8 +24,8 @@ func (r *random) Shuffle(course *core.Course, userID string, questionCount int) 
 		questions = questions[:questionCount]
 	}
 
-	for _, question := range questions {
-		Sort(seed, len(question.Choices), func(i, j int) {
+	for idx, question := range questions {
+		Sort(seed+strconv.Itoa(idx), len(question.Choices), func(i, j int) {
 			switch question.Answer {
 			case i:
 				question.Answer = j

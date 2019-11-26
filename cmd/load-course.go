@@ -17,12 +17,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/fox-one/pkg/text/columnize"
 	"github.com/spf13/cobra"
-	"github.com/yiplee/blockquiz/plugin/shuffler"
 )
 
 // loadCourseCmd represents the loadCourse command
@@ -52,19 +50,6 @@ var loadCourseCmd = &cobra.Command{
 		}
 
 		form.Fprint(cmd.OutOrStdout())
-
-		userID := "8017d200-7870-4b82-b53f-74bae1d2dad7"
-		title := list[0].Title
-		language := list[0].Language
-
-		for idx := 0; idx < 2; idx++ {
-			course, _ := courses.Find(ctx, title, language)
-			fmt.Fprintln(cmd.OutOrStdout(), course.Questions[0].Content)
-			shuffler.Rand().Shuffle(course, userID, 5)
-			for idx, question := range course.Questions {
-				fmt.Fprintf(cmd.OutOrStdout(), "%d %v\n", idx, question)
-			}
-		}
 
 		return
 	},
