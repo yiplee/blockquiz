@@ -7,6 +7,7 @@ import (
 	"github.com/yiplee/blockquiz/db"
 	"github.com/yiplee/blockquiz/store/command"
 	"github.com/yiplee/blockquiz/store/course"
+	"github.com/yiplee/blockquiz/store/message"
 	"github.com/yiplee/blockquiz/store/task"
 	"github.com/yiplee/blockquiz/store/user"
 	"github.com/yiplee/blockquiz/store/wallet"
@@ -49,4 +50,8 @@ func provideWalletStore(db *db.DB) core.WalletStore {
 
 func provideTaskStore(db *db.DB) core.TaskStore {
 	return task.New(db)
+}
+
+func provideMessageStore(db *db.DB) core.MessageStore {
+	return message.New(db)
 }

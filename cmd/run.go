@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/yiplee/blockquiz/operator/deliver"
 	"github.com/yiplee/blockquiz/operator/hub"
+	"github.com/yiplee/blockquiz/operator/messenger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -35,7 +37,7 @@ func runEngine(ctx context.Context) error {
 	courses := provideCourseStore()
 	tasks := provideTaskStore(db)
 	localizer := provideLocalizer()
-
+	messages := provideMessageStore(db)
 	awsSession := provideAwsSession()
 	pubsub := providePubSub(awsSession)
 
@@ -58,6 +60,7 @@ func runEngine(ctx context.Context) error {
 			courses,
 			wallets,
 			tasks,
+			messages,
 			pubsub,
 			localizer,
 			deliver.Config{
@@ -71,6 +74,16 @@ func runEngine(ctx context.Context) error {
 		)
 
 		return d.Run(ctx, cfg.Deliver.Capacity)
+	})
+
+	g.Go(func() error {
+		m := messenger.New(messages, messenger.Config{
+			ClientID:   cfg.Bot.ClientID,
+			SessionID:  cfg.Bot.SessionID,
+			SessionKey: cfg.Bot.SessionKey,
+		})
+
+		return m.Run(ctx, 10*time.Millisecond)
 	})
 
 	return g.Wait()

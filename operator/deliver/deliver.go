@@ -10,7 +10,6 @@ import (
 	"github.com/fox-one/pkg/text/localizer"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -24,6 +23,7 @@ type Deliver struct {
 	courses   core.CourseStore
 	wallets   core.WalletStore
 	tasks     core.TaskStore
+	messages  core.MessageStore
 	sub       mq.Sub
 	localizer *localizer.Localizer
 	config    Config
@@ -37,6 +37,7 @@ func New(
 	courses core.CourseStore,
 	wallets core.WalletStore,
 	tasks core.TaskStore,
+	messages core.MessageStore,
 	sub mq.Sub,
 	localizer *localizer.Localizer,
 	config Config,
@@ -53,6 +54,7 @@ func New(
 		courses:   courses,
 		wallets:   wallets,
 		tasks:     tasks,
+		messages:  messages,
 		sub:       sub,
 		localizer: localizer,
 		config:    config,
@@ -138,24 +140,28 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 		return err
 	}
 
-	for _, req := range requests {
-		if err := bot.PostMessage(
-			ctx,
-			req.ConversationId,
-			req.RecipientId,
-			req.MessageId,
-			req.Category,
-			req.Data,
-			d.config.ClientID,
-			d.config.SessionID,
-			d.config.SessionKey,
-		); err != nil {
-			return err
+	if len(requests) == 0 {
+		return nil
+	}
+
+	messages := make([]*core.Message, len(requests))
+	for idx, req := range requests {
+		body, _ := jsoniter.MarshalToString(req)
+		msg := &core.Message{
+			MessageID: req.MessageId,
+			UserID:    req.RecipientId,
+			Body:      body,
 		}
+		messages[idx] = msg
+	}
+
+	if err := d.messages.Creates(ctx, messages); err != nil {
+		log.WithError(err).Error("create messages")
+		return err
 	}
 
 	// update task
-	if c.updateTask && len(requests) > 0 {
+	if c.updateTask {
 		if err := d.tasks.UpdateVersion(ctx, c.task, cmd.ID); err != nil {
 			return err
 		}
