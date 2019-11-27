@@ -11,7 +11,7 @@ import (
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
-const limit = 100
+const limit = 70
 
 type Messenger struct {
 	messages core.MessageStore
@@ -46,6 +46,8 @@ func (m *Messenger) Run(ctx context.Context, dur time.Duration) error {
 func (m *Messenger) run(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
+	start := time.Now()
+
 	list, err := m.messages.ListPending(ctx, limit)
 	if err != nil {
 		log.WithError(err).Error("list pending messages")
@@ -56,6 +58,8 @@ func (m *Messenger) run(ctx context.Context) error {
 		return nil
 	}
 
+	log.Debugf("list %d pending messages in %s", len(list), time.Since(start))
+
 	requests := make([]*bot.MessageRequest, len(list))
 	for idx, msg := range list {
 		var req bot.MessageRequest
@@ -64,16 +68,21 @@ func (m *Messenger) run(ctx context.Context) error {
 		}
 	}
 
-	log.Debugf("post %d messages in batch", len(requests))
+	start = time.Now()
 	if err := bot.PostMessages(ctx, requests, m.cfg.ClientID, m.cfg.SessionID, m.cfg.SessionKey); err != nil {
 		log.WithError(err).Error("post messages")
 		return err
 	}
 
+	log.Debugf("post %d messages in batch %s", len(requests), time.Since(start))
+
+	start = time.Now()
 	if err := m.messages.Deletes(ctx, list); err != nil {
 		log.WithError(err).Error("delete messages")
 		return err
 	}
+
+	log.Debugf("delete %d pending messages in %s", len(list), time.Since(start))
 
 	return nil
 }
