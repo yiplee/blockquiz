@@ -7,7 +7,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/mq"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
@@ -15,14 +14,12 @@ import (
 type Hub struct {
 	commands core.CommandStore
 	parser   core.CommandParser
-	pub      mq.Pub
 	config   Config
 }
 
 func New(
 	commands core.CommandStore,
 	parser core.CommandParser,
-	pub mq.Pub,
 	config Config,
 ) *Hub {
 	if _, err := govalidator.ValidateStruct(config); err != nil {
@@ -32,7 +29,6 @@ func New(
 	return &Hub{
 		commands: commands,
 		parser:   parser,
-		pub:      pub,
 		config:   config,
 	}
 }

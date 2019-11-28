@@ -19,14 +19,7 @@ func (m *messageStore) insert(tx *db.DB, msg *core.Message) error {
 	update := tx.Update()
 	update.Callback().Create().Remove("gorm:force_reload_after_create")
 
-	err := update.Create(msg).Error
-	if err != nil {
-		if err := update.Where("message_id = ?", msg.MessageID).First(msg).Error; err == nil {
-			return nil
-		}
-	}
-
-	return err
+	return update.Create(msg).Error
 }
 
 func (m *messageStore) Create(ctx context.Context, message *core.Message) error {
@@ -56,37 +49,11 @@ func (m *messageStore) Deletes(ctx context.Context, messages []*core.Message) er
 		ids[idx] = msg.ID
 	}
 
-	if len(ids) == 0 {
-		return nil
-	}
-
 	return m.db.Update().Where("id IN (?)", ids).Delete(core.Message{}).Error
 }
 
 func (m *messageStore) ListPending(ctx context.Context, limit int) ([]*core.Message, error) {
 	var messages []*core.Message
-	if err := m.db.View().Limit(limit * 5).Find(&messages).Error; err != nil {
-		return nil, err
-	}
-
-	var (
-		users = map[string]bool{}
-		idx   = 0
-	)
-
-	for _, msg := range messages {
-		if idx >= limit {
-			break
-		}
-
-		if users[msg.UserID] {
-			continue
-		}
-
-		messages[idx] = msg
-		users[msg.UserID] = true
-		idx++
-	}
-
-	return messages[:idx], nil
+	err := m.db.View().Limit(limit).Find(&messages).Error
+	return messages, err
 }

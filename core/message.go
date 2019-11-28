@@ -6,10 +6,9 @@ import (
 
 type (
 	Message struct {
-		ID        int64  `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-		MessageID string `gorm:"size:36" json:"message_id,omitempty"`
-		UserID    string `gorm:"size:36" json:"user_id,omitempty"`
-		Body      string `gorm:"type:text" json:"body,omitempty"`
+		ID     int64  `gorm:"primary_key;auto_increment:false" json:"id,omitempty"`
+		UserID string `gorm:"size:36" json:"user_id,omitempty"`
+		Body   string `gorm:"type:text" json:"body,omitempty"`
 	}
 
 	MessageStore interface {

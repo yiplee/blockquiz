@@ -20,9 +20,5 @@ func setCommand(db *db.DB) error {
 		return err
 	}
 
-	if err := tx.AddIndex("idx_commands_deleted_at", "deleted_at").Error; err != nil {
-		return err
-	}
-
 	return nil
 }

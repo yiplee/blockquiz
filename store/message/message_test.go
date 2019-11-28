@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fox-one/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/db"
@@ -33,16 +32,13 @@ func TestMessageStore(t *testing.T) {
 	t.Run("insert commands", func(t *testing.T) {
 		err := s.Creates(ctx, []*core.Message{
 			{
-				MessageID: uuid.New(),
-				UserID:    "1",
+				UserID: "1",
 			},
 			{
-				MessageID: uuid.New(),
-				UserID:    "1",
+				UserID: "1",
 			},
 			{
-				MessageID: uuid.New(),
-				UserID:    "2",
+				UserID: "2",
 			},
 		})
 		assert.Nil(t, err)

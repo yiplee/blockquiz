@@ -38,11 +38,10 @@ func runEngine(ctx context.Context) error {
 	tasks := provideTaskStore(db)
 	localizer := provideLocalizer()
 	messages := provideMessageStore(db)
-	awsSession := provideAwsSession()
-	pubsub := providePubSub(awsSession)
+	property := providePropertyStore(db)
 
 	g.Go(func() error {
-		h := hub.New(commands, commandParser, pubsub, hub.Config{
+		h := hub.New(commands, commandParser, hub.Config{
 			ClientID:   cfg.Bot.ClientID,
 			SessionID:  cfg.Bot.SessionID,
 			SessionKey: cfg.Bot.SessionKey,
@@ -61,7 +60,7 @@ func runEngine(ctx context.Context) error {
 			wallets,
 			tasks,
 			messages,
-			pubsub,
+			property,
 			localizer,
 			deliver.Config{
 				ClientID:      cfg.Bot.ClientID,
@@ -73,7 +72,7 @@ func runEngine(ctx context.Context) error {
 			},
 		)
 
-		return d.Run(ctx, cfg.Deliver.Capacity)
+		return d.Run(ctx)
 	})
 
 	g.Go(func() error {
@@ -83,7 +82,7 @@ func runEngine(ctx context.Context) error {
 			SessionKey: cfg.Bot.SessionKey,
 		})
 
-		return m.Run(ctx, 10*time.Millisecond)
+		return m.Run(ctx, 12*time.Millisecond)
 	})
 
 	return g.Wait()

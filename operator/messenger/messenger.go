@@ -6,16 +6,22 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/lruset"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
-const limit = 70
+const (
+	limit      = 300
+	batchLimit = 70
+)
 
 type Messenger struct {
 	messages core.MessageStore
 	cfg      Config
+
+	set *lruset.Set
 }
 
 func New(messages core.MessageStore, cfg Config) *Messenger {
@@ -26,6 +32,7 @@ func New(messages core.MessageStore, cfg Config) *Messenger {
 	return &Messenger{
 		messages: messages,
 		cfg:      cfg,
+		set:      lruset.New(batchLimit),
 	}
 }
 
@@ -60,6 +67,29 @@ func (m *Messenger) run(ctx context.Context) error {
 
 	log.Debugf("list %d pending messages in %s", len(list), time.Since(start))
 
+	users := map[string]bool{}
+
+	var idx int
+	for _, msg := range list {
+		if idx >= batchLimit {
+			break
+		}
+
+		if m.set.Contains(msg.ID) {
+			continue
+		}
+
+		if users[msg.UserID] {
+			continue
+		}
+
+		list[idx] = msg
+		users[msg.UserID] = true
+		idx++
+	}
+
+	list = list[:idx]
+
 	requests := make([]*bot.MessageRequest, len(list))
 	for idx, msg := range list {
 		var req bot.MessageRequest
@@ -83,6 +113,10 @@ func (m *Messenger) run(ctx context.Context) error {
 	}
 
 	log.Debugf("delete %d pending messages in %s", len(list), time.Since(start))
+
+	for _, msg := range list {
+		m.set.Add(msg.ID)
+	}
 
 	return nil
 }

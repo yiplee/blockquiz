@@ -5,15 +5,19 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/bwmarrin/snowflake"
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/mq"
+	"github.com/fox-one/pkg/lruset"
 	"github.com/fox-one/pkg/text/localizer"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"golang.org/x/sync/errgroup"
 )
 
-const limit = 500
+const (
+	limit         = 100
+	checkpointKey = "quiz_commands_checkpoint_key"
+)
 
 type Deliver struct {
 	users     core.UserStore
@@ -24,9 +28,13 @@ type Deliver struct {
 	wallets   core.WalletStore
 	tasks     core.TaskStore
 	messages  core.MessageStore
-	sub       mq.Sub
+	property  core.PropertyStore
 	localizer *localizer.Localizer
 	config    Config
+
+	fromID int64
+	set    *lruset.Set
+	node   *snowflake.Node
 }
 
 func New(
@@ -38,11 +46,16 @@ func New(
 	wallets core.WalletStore,
 	tasks core.TaskStore,
 	messages core.MessageStore,
-	sub mq.Sub,
+	property core.PropertyStore,
 	localizer *localizer.Localizer,
 	config Config,
 ) *Deliver {
 	if _, err := govalidator.ValidateStruct(config); err != nil {
+		panic(err)
+	}
+
+	node, err := snowflake.NewNode(1)
+	if err != nil {
 		panic(err)
 	}
 
@@ -55,65 +68,92 @@ func New(
 		wallets:   wallets,
 		tasks:     tasks,
 		messages:  messages,
-		sub:       sub,
+		property:  property,
 		localizer: localizer,
 		config:    config,
+		node:      node,
+		set:       lruset.New(limit * 2),
 	}
 }
 
-func (d *Deliver) Run(ctx context.Context, capacity int) error {
+func (d *Deliver) Run(ctx context.Context) error {
 	log := logger.FromContext(ctx).WithField("operator", "deliver")
 	ctx = logger.WithContext(ctx, log)
 
-	var g errgroup.Group
-	for i := 0; i < capacity; i++ {
-		g.Go(func() error {
-			return d.start(ctx)
-		})
+	value, err := d.property.Get(ctx, checkpointKey)
+	if err != nil {
+		log.Panic(err)
 	}
-	return g.Wait()
-}
 
-func (d *Deliver) start(ctx context.Context) error {
+	d.fromID = value.Int64()
+	dur := time.Millisecond
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
-			_ = d.poll(ctx)
+		case <-time.After(dur):
+			if num, err := d.poll(ctx); err != nil {
+				dur = 200 * time.Millisecond
+			} else if num == 0 {
+				dur = 300 * time.Millisecond
+			} else {
+				dur = 1 * time.Millisecond
+			}
 		}
 	}
 }
 
-func (d *Deliver) poll(ctx context.Context) error {
+func (d *Deliver) poll(ctx context.Context) (int, error) {
 	log := logger.FromContext(ctx)
 
-	data, callback, err := d.sub.Receive(ctx, &mq.ReceiveOption{VisibilityTimeout: 10 * time.Second})
+	commands, err := d.commands.ListPending(ctx, d.fromID, limit)
 	if err != nil {
-		log.WithError(err).Error("receive cmd message")
-		return err
+		log.WithError(err).Error("list pending commands")
+		return 0, err
 	}
 
-	var cmd core.Command
-	if err := jsoniter.UnmarshalFromString(data, &cmd); err != nil {
-		return callback.Finish(ctx)
+	if len(commands) == 0 {
+		return 0, nil
 	}
 
-	if cmd.UserID == "00000000-0000-0000-0000-000000000000" {
-		return callback.Finish(ctx)
+	log.Infof("list %d pending commands", len(commands))
+	groups, next := groupCommands(commands)
+
+	start := time.Now()
+
+	var g errgroup.Group
+	for _, group := range groups {
+		group := group
+		g.Go(func() error {
+			for _, cmd := range group {
+				if d.set.Contains(cmd.ID) {
+					continue
+				}
+
+				if err := d.handleCommand(ctx, cmd); err != nil {
+					return err
+				}
+
+				d.set.Add(cmd.ID)
+			}
+
+			return nil
+		})
 	}
 
-	if err := d.commands.Create(ctx, &cmd); err != nil {
-		log.WithError(err).Error("create command")
-		return callback.Delay(ctx, time.Second)
+	if err := g.Wait(); err != nil {
+		return 0, err
 	}
 
-	if err := d.handleCommand(ctx, &cmd); err != nil {
-		log.WithError(err).Errorf("handle command %d %s", cmd.ID, cmd.Action)
-		return callback.Delay(ctx, time.Second)
+	log.Infof("handle %d commands for %d users in %s", len(commands), len(groups), time.Since(start))
+
+	if err := d.property.Save(ctx, checkpointKey, next); err != nil {
+		log.WithError(err).Errorf("save checkpoint %s", checkpointKey)
 	}
 
-	return callback.Finish(ctx)
+	d.fromID = next
+	return len(commands), nil
 }
 
 func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
@@ -145,9 +185,9 @@ func (d *Deliver) handleCommand(ctx context.Context, cmd *core.Command) error {
 	for idx, req := range requests {
 		body, _ := jsoniter.MarshalToString(req)
 		msg := &core.Message{
-			MessageID: req.MessageId,
-			UserID:    req.RecipientId,
-			Body:      body,
+			ID:     d.node.Generate().Int64(),
+			UserID: req.RecipientId,
+			Body:   body,
 		}
 		messages[idx] = msg
 	}
@@ -198,24 +238,15 @@ func (d *Deliver) createTask(ctx context.Context, user *core.User, at time.Time)
    1. 按用户 id 分组
    2. 一个用户只保留一个 usage cmd
 */
-func groupCommands(list []*core.Command) map[string][]*core.Command {
+func groupCommands(list []*core.Command) (map[string][]*core.Command, int64) {
 	groups := make(map[string][]*core.Command)
-	usages := make(map[string]bool)
+	var next int64
 
 	for _, cmd := range list {
 		user := cmd.UserID
-		isUsage := cmd.Action == core.ActionUsage
-
-		if isUsage && usages[user] {
-			continue
-		}
-
 		groups[user] = append(groups[user], cmd)
-
-		if isUsage {
-			usages[user] = true
-		}
+		next = cmd.ID
 	}
 
-	return groups
+	return groups, next
 }

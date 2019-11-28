@@ -28,7 +28,7 @@ func provideUserStore(db *db.DB) core.UserStore {
 }
 
 func provideCommandStore(db *db.DB) core.CommandStore {
-	return command.New(db, true)
+	return command.New(db)
 }
 
 func provideCourseStore() core.CourseStore {

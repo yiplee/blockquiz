@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/mq"
 	"github.com/fox-one/pkg/number"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -58,8 +57,8 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		return nil
 	}
 
-	traceID := msg.MessageId
 	for idx, cmd := range cmds {
+		traceID := msg.MessageId
 		if idx > 0 {
 			traceID = uuid.Modify(traceID, strconv.Itoa(idx))
 		}
@@ -69,20 +68,13 @@ func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string)
 		cmd.UserID = msg.UserId
 		cmd.Source = source
 
-		if err := h.handleCmd(ctx, cmd); err != nil {
-			log.WithError(err).Error("pub cmd")
+		start := time.Now()
+		if err := h.commands.Create(ctx, cmd); err != nil {
+			log.WithError(err).Error("create command")
 			return err
 		}
+		log.Infof("insert command in %s", time.Since(start))
 	}
 
 	return nil
-}
-
-func (h *Hub) handleCmd(ctx context.Context, cmd *core.Command) error {
-	data, _ := jsoniter.MarshalToString(cmd)
-	return h.pub.Publish(ctx, data, &mq.PublishOption{
-		GroupID:   cmd.UserID,
-		TraceID:   cmd.TraceID,
-		ExpiredAt: time.Now().Add(time.Hour),
-	})
 }
