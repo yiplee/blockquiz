@@ -8,6 +8,8 @@ import (
 	"github.com/yiplee/blockquiz/operator/deliver"
 	"github.com/yiplee/blockquiz/operator/hub"
 	"github.com/yiplee/blockquiz/operator/messenger"
+	taskcache "github.com/yiplee/blockquiz/store/task/cache"
+	usercache "github.com/yiplee/blockquiz/store/user/cache"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -52,13 +54,13 @@ func runEngine(ctx context.Context) error {
 
 	g.Go(func() error {
 		d := deliver.New(
-			users,
+			usercache.Cache(users),
 			commands,
 			commandParser,
 			courseShuffler,
 			courses,
 			wallets,
-			tasks,
+			taskcache.Cache(tasks),
 			messages,
 			property,
 			localizer,
