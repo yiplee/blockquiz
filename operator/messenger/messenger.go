@@ -6,7 +6,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/lruset"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
@@ -20,8 +19,6 @@ const (
 type Messenger struct {
 	messages core.MessageStore
 	cfg      Config
-
-	set *lruset.Set
 }
 
 func New(messages core.MessageStore, cfg Config) *Messenger {
@@ -32,7 +29,6 @@ func New(messages core.MessageStore, cfg Config) *Messenger {
 	return &Messenger{
 		messages: messages,
 		cfg:      cfg,
-		set:      lruset.New(batchLimit),
 	}
 }
 
@@ -75,10 +71,6 @@ func (m *Messenger) run(ctx context.Context) error {
 			break
 		}
 
-		if m.set.Contains(msg.ID) {
-			continue
-		}
-
 		if users[msg.UserID] {
 			continue
 		}
@@ -113,10 +105,6 @@ func (m *Messenger) run(ctx context.Context) error {
 	}
 
 	log.Debugf("delete %d pending messages in %s", len(list), time.Since(start))
-
-	for _, msg := range list {
-		m.set.Add(msg.ID)
-	}
 
 	return nil
 }
