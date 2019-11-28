@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fox-one/pkg/store/db"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
-	"github.com/yiplee/blockquiz/db"
 )
 
 type (

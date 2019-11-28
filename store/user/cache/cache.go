@@ -38,9 +38,6 @@ func (c *cacheUsers) Create(ctx context.Context, user *core.User) error {
 	}
 
 	c.set(user)
-	if user.ID == 0 {
-		panic("user's id is zero")
-	}
 	return nil
 }
 

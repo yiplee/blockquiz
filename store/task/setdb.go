@@ -1,8 +1,8 @@
 package task
 
 import (
+	"github.com/fox-one/pkg/store/db"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 )
 
 func init() {

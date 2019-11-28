@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/fox-one/pkg/store/db"
 	"github.com/fox-one/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 )
 
 var ctx = context.Background()

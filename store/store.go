@@ -3,7 +3,7 @@ package store
 import (
 	"errors"
 
-	"github.com/yiplee/blockquiz/db"
+	"github.com/fox-one/pkg/store/db"
 )
 
 var ErrNotFound = errors.New("store: not found")

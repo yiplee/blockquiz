@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/fox-one/pkg/logger"
+	"github.com/fox-one/pkg/store/db"
 	"github.com/fox-one/pkg/uuid"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 	"github.com/yiplee/blockquiz/store/message"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"

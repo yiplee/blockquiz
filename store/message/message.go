@@ -3,8 +3,8 @@ package message
 import (
 	"context"
 
+	"github.com/fox-one/pkg/store/db"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 )
 
 func New(db *db.DB) core.MessageStore {

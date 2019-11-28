@@ -25,22 +25,15 @@ func (c *cacheTask) Create(ctx context.Context, task *core.Task) error {
 		return err
 	}
 
-	if task.ID == 0 {
-		panic("task id is zero")
-	}
 	c.set(task)
 	return nil
 }
 
 func (c *cacheTask) Update(ctx context.Context, task *core.Task) error {
-	version := task.Version
 	if err := c.tasks.Update(ctx, task); err != nil {
 		return err
 	}
 
-	if task.Version <= version {
-		panic("task version not increase")
-	}
 	c.set(task)
 	return nil
 }
@@ -50,9 +43,6 @@ func (c *cacheTask) UpdateVersion(ctx context.Context, task *core.Task, version 
 		return err
 	}
 
-	if task.Version != version {
-		panic("task version should set")
-	}
 	c.set(task)
 	return nil
 }

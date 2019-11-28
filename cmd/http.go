@@ -46,7 +46,7 @@ func init() {
 }
 
 func runServer(port int) error {
-	db := provideDB()
+	db := provideDB(true)
 	defer db.Close()
 
 	tasks := provideTaskStore(db)

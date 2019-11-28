@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
+	"github.com/fox-one/pkg/store/db"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 	"github.com/yiplee/blockquiz/store/command"
 	"github.com/yiplee/blockquiz/store/course"
 	"github.com/yiplee/blockquiz/store/message"
@@ -14,7 +14,10 @@ import (
 	"github.com/yiplee/blockquiz/store/wallet"
 )
 
-func provideDB() *db.DB {
+func provideDB(cluster bool) *db.DB {
+	if !cluster {
+		cfg.DB.ReadHost = ""
+	}
 	database := db.MustOpen(cfg.DB)
 	if err := db.Migrate(database); err != nil {
 		panic(err)

@@ -3,8 +3,8 @@ package task
 import (
 	"context"
 
+	"github.com/fox-one/pkg/store/db"
 	"github.com/yiplee/blockquiz/core"
-	"github.com/yiplee/blockquiz/db"
 	"github.com/yiplee/blockquiz/store"
 )
 

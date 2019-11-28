@@ -28,7 +28,7 @@ func init() {
 func runEngine(ctx context.Context) error {
 	var g errgroup.Group
 
-	db := provideDB()
+	db := provideDB(false)
 	defer db.Close()
 
 	users := provideUserStore(db)

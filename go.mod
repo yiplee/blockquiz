@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.36
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/fox-one/pkg v1.1.8
+	github.com/fox-one/pkg v1.1.14
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -20,7 +20,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/rs/cors v1.7.0
-	github.com/shopspring/decimal v0.0.0-20191009025716-f1972eb1d1f5
+	github.com/shopspring/decimal v0.0.0-20191125035519-b054a8dfd10d
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5

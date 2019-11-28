@@ -16,15 +16,15 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/fox-one/pkg/store/db"
 	"github.com/spf13/cobra"
-	"github.com/yiplee/blockquiz/db"
 )
 
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "create db tables and add indexes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		coon := provideDB()
+		coon := provideDB(false)
 		defer coon.Close()
 		return db.Migrate(coon)
 	},
