@@ -16,9 +16,5 @@ func setMessage(db *db.DB) error {
 		return err
 	}
 
-	if err := tx.AddUniqueIndex("idx_messages_message_id", "message_id").Error; err != nil {
-		return err
-	}
-
 	return nil
 }

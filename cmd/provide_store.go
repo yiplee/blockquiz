@@ -8,6 +8,7 @@ import (
 	"github.com/yiplee/blockquiz/store/command"
 	"github.com/yiplee/blockquiz/store/course"
 	"github.com/yiplee/blockquiz/store/message"
+	"github.com/yiplee/blockquiz/store/property"
 	"github.com/yiplee/blockquiz/store/task"
 	"github.com/yiplee/blockquiz/store/user"
 	"github.com/yiplee/blockquiz/store/wallet"
@@ -54,4 +55,8 @@ func provideTaskStore(db *db.DB) core.TaskStore {
 
 func provideMessageStore(db *db.DB) core.MessageStore {
 	return message.New(db)
+}
+
+func providePropertyStore(db *db.DB) core.PropertyStore {
+	return property.New(db)
 }
