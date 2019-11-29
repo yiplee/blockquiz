@@ -255,7 +255,7 @@ func (c *commandContext) showQuestionChoiceButtons(ctx context.Context) *bot.Mes
 			Question: c.task.Question,
 		}
 		buttons[idx] = c.newButton(
-			core.AnswerToString(idx),
+			fmt.Sprintf("  %s  ", core.AnswerToString(idx)),
 			c.inputButtonAction(ctx, cmd),
 		)
 	}
