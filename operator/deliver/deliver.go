@@ -7,7 +7,6 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/bwmarrin/snowflake"
 	"github.com/fox-one/pkg/logger"
-	"github.com/fox-one/pkg/lruset"
 	"github.com/fox-one/pkg/text/localizer"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
@@ -33,7 +32,6 @@ type Deliver struct {
 	config    Config
 
 	fromID int64
-	set    *lruset.Set
 	node   *snowflake.Node
 }
 
@@ -72,7 +70,6 @@ func New(
 		localizer: localizer,
 		config:    config,
 		node:      node,
-		set:       lruset.New(limit * 2),
 	}
 }
 
@@ -127,15 +124,9 @@ func (d *Deliver) poll(ctx context.Context) (int, error) {
 		group := group
 		g.Go(func() error {
 			for _, cmd := range group {
-				if d.set.Contains(cmd.ID) {
-					continue
-				}
-
 				if err := d.handleCommand(ctx, cmd); err != nil {
 					return err
 				}
-
-				d.set.Add(cmd.ID)
 			}
 
 			return nil
