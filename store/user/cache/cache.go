@@ -10,7 +10,7 @@ import (
 
 func Cache(users core.UserStore) core.UserStore {
 	return &cacheUsers{
-		Cache: cache.New(12*time.Hour, time.Hour),
+		Cache: cache.New(time.Hour, 10*time.Minute),
 		users: users,
 	}
 }

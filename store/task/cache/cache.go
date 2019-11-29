@@ -10,7 +10,7 @@ import (
 
 func Cache(tasks core.TaskStore) core.TaskStore {
 	return &cacheTask{
-		Cache: cache.New(24*time.Hour, time.Hour),
+		Cache: cache.New(time.Hour, 10*time.Minute),
 		tasks: tasks,
 	}
 }
