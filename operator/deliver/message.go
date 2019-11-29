@@ -232,7 +232,7 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 	fmt.Fprintln(&buf, c.question.Content)
 	fmt.Fprintln(&buf)
 	for idx, choice := range c.question.Choices {
-		fmt.Fprintf(&buf, "%s %s\n", core.AnswerToString(idx), choice)
+		fmt.Fprintf(&buf, "[%s] %s\n", core.AnswerToString(idx), choice)
 	}
 
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
