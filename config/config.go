@@ -18,6 +18,7 @@ type (
 		Course  Course    `json:"course,omitempty"`
 		I18n    I18n      `json:"i18n,omitempty"`
 		Deliver Deliver   `json:"deliver,omitempty"`
+		Hub     Hub       `json:"hub,omitempty"`
 	}
 
 	Bot struct {
@@ -57,6 +58,10 @@ type (
 		BlockDuration int64  `json:"block_duration,omitempty"` // 秒
 		QuestionCount int    `json:"question_count,omitempty"`
 		Capacity      int    `json:"capacity,omitempty"`
+	}
+
+	Hub struct {
+		Disable bool `json:"disable,omitempty"`
 	}
 )
 
