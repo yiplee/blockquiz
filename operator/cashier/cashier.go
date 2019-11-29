@@ -31,12 +31,15 @@ func (c *Cashier) Work(ctx context.Context, dur time.Duration) error {
 	log := logger.FromContext(ctx).WithField("operator", "cashier")
 	ctx = logger.WithContext(ctx, log)
 
+	timer := time.NewTimer(dur)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(dur):
+		case <-timer.C:
 			_ = c.run(ctx)
+			timer.Reset(dur)
 		}
 	}
 }

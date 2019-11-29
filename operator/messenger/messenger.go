@@ -36,12 +36,15 @@ func (m *Messenger) Run(ctx context.Context, dur time.Duration) error {
 	log := logger.FromContext(ctx).WithField("operator", "messenger")
 	ctx = logger.WithContext(ctx, log)
 
+	timer := time.NewTimer(dur)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(dur):
+		case <-timer.C:
 			_ = m.run(ctx)
+			timer.Reset(dur)
 		}
 	}
 }

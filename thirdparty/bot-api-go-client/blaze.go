@@ -293,12 +293,15 @@ func writeMessageWithNoWait(ctx context.Context, mc *messageContext, action stri
 		return err
 	}
 
+	timer := time.NewTimer(keepAlivePeriod)
+
 	select {
-	case <-time.After(keepAlivePeriod):
+	case <-timer.C:
 		return fmt.Errorf("timeout to write %s %v", action, params)
 	case mc.writeBuffer <- blazeMessage:
 	}
 
+	timer.Stop()
 	return nil
 }
 
@@ -375,11 +378,16 @@ func parseMessage(ctx context.Context, mc *messageContext, wsReader io.Reader) e
 	if err = json.Unmarshal(message.Data, &msg); err != nil {
 		return err
 	}
+
+	timer := time.NewTimer(keepAlivePeriod)
+
 	select {
-	case <-time.After(keepAlivePeriod):
+	case <-timer.C:
 		return fmt.Errorf("timeout to handle %s %s", msg.Category, msg.MessageId)
 	case mc.readBuffer <- msg:
 	}
+
+	timer.Stop()
 	return nil
 }
 

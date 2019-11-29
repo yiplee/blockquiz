@@ -83,13 +83,15 @@ func (d *Deliver) Run(ctx context.Context) error {
 	}
 
 	d.fromID = value.Int64()
+
 	dur := time.Millisecond
+	timer := time.NewTimer(dur)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(dur):
+		case <-timer.C:
 			if num, err := d.poll(ctx); err != nil {
 				dur = 200 * time.Millisecond
 			} else if num == 0 {
@@ -97,6 +99,8 @@ func (d *Deliver) Run(ctx context.Context) error {
 			} else {
 				dur = 1 * time.Millisecond
 			}
+
+			timer.Reset(dur)
 		}
 	}
 }
