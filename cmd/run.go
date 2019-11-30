@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
-	"time"
 
 	_ "net/http/pprof"
 
@@ -91,7 +90,7 @@ func runEngine(ctx context.Context) error {
 			SessionKey: cfg.Bot.SessionKey,
 		})
 
-		return m.Run(ctx, 12*time.Millisecond)
+		return m.Run(ctx)
 	})
 
 	g.Go(func() error {

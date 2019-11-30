@@ -33,10 +33,11 @@ func New(messages core.MessageStore, cfg Config) *Messenger {
 	}
 }
 
-func (m *Messenger) Run(ctx context.Context, dur time.Duration) error {
+func (m *Messenger) Run(ctx context.Context) error {
 	log := logger.FromContext(ctx).WithField("operator", "messenger")
 	ctx = logger.WithContext(ctx, log)
 
+	dur := 12 * time.Millisecond
 	timer := time.NewTimer(dur)
 
 	for {
@@ -44,23 +45,26 @@ func (m *Messenger) Run(ctx context.Context, dur time.Duration) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-timer.C:
-			_ = m.run(ctx)
-			timer.Reset(dur)
+			if count, err := m.run(ctx); err != nil || count > 0 {
+				timer.Reset(dur)
+			} else {
+				timer.Reset(200 * time.Millisecond)
+			}
 		}
 	}
 }
 
-func (m *Messenger) run(ctx context.Context) error {
+func (m *Messenger) run(ctx context.Context) (int, error) {
 	log := logger.FromContext(ctx)
 
 	list, err := m.messages.ListPending(ctx, limit)
 	if err != nil {
 		log.WithError(err).Error("list pending messages")
-		return err
+		return 0, err
 	}
 
 	if len(list) == 0 {
-		return nil
+		return 0, nil
 	}
 
 	users := map[string]bool{}
@@ -104,10 +108,10 @@ func (m *Messenger) run(ctx context.Context) error {
 	}
 
 	if err := g.Wait(); err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return len(list), nil
 }
 
 func (m *Messenger) postMessages(ctx context.Context, messages []*core.Message) error {
