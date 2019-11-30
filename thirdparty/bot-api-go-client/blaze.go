@@ -14,6 +14,7 @@ import (
 
 	"github.com/fox-one/pkg/logger"
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -178,7 +179,7 @@ func (b *BlazeClient) SendPlainText(ctx context.Context, msg MessageView, conten
 
 func (b *BlazeClient) SendContact(ctx context.Context, conversationId, recipientId, contactId string) error {
 	contactMap := map[string]string{"user_id": contactId}
-	contactData, _ := json.Marshal(contactMap)
+	contactData, _ := jsoniter.Marshal(contactMap)
 	params := map[string]interface{}{
 		"conversation_id": conversationId,
 		"recipient_id":    recipientId,
@@ -193,7 +194,7 @@ func (b *BlazeClient) SendContact(ctx context.Context, conversationId, recipient
 }
 
 func (b *BlazeClient) SendAppButton(ctx context.Context, conversationId, recipientId, label, action, color string) error {
-	btns, err := json.Marshal([]interface{}{map[string]string{
+	btns, err := jsoniter.Marshal([]interface{}{map[string]string{
 		"label":  label,
 		"action": action,
 		"color":  color,
@@ -354,7 +355,7 @@ func writeMessageAndWait(ctx context.Context, mc *messageContext, action string,
 		return nil
 	})
 
-	blazeMessage, err := json.Marshal(BlazeMessage{Id: id, Action: action, Params: params})
+	blazeMessage, err := jsoniter.Marshal(BlazeMessage{Id: id, Action: action, Params: params})
 	if err != nil {
 		return err
 	}
@@ -422,7 +423,7 @@ func parseMessage(ctx context.Context, mc *messageContext, wsReader io.Reader) e
 	}
 
 	var msg MessageView
-	if err = json.Unmarshal(message.Data, &msg); err != nil {
+	if err = jsoniter.Unmarshal(message.Data, &msg); err != nil {
 		return err
 	}
 

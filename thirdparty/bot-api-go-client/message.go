@@ -3,9 +3,10 @@ package bot
 import (
 	"context"
 	"crypto/md5"
-	"encoding/json"
 	"io"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type LiveMessagePayload struct {
@@ -30,7 +31,7 @@ type MessageRequest struct {
 }
 
 func PostMessages(ctx context.Context, messages []*MessageRequest, clientId, sessionId, secret string) error {
-	msg, err := json.Marshal(messages)
+	msg, err := jsoniter.Marshal(messages)
 	if err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func PostMessages(ctx context.Context, messages []*MessageRequest, clientId, ses
 	var resp struct {
 		Error Error `json:"error"`
 	}
-	err = json.Unmarshal(body, &resp)
+	err = jsoniter.Unmarshal(body, &resp)
 	if err != nil {
 		return err
 	}
