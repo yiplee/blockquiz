@@ -234,6 +234,8 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 	for idx, choice := range c.question.Choices {
 		fmt.Fprintf(&buf, "[%s] %s\n", core.AnswerToString(idx), choice)
 	}
+	fmt.Fprintln(&buf)
+	fmt.Fprintln(&buf, c.Localizer().MustLocalize("question_tip"))
 
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
 	return req

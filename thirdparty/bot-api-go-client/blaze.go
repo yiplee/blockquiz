@@ -76,6 +76,7 @@ type messageContext struct {
 	transactions *tmap
 	readDone     chan bool
 	writeDone    chan bool
+	ackDone      chan bool
 	readBuffer   chan MessageView
 	ackBuffer    chan string
 	writeBuffer  chan []byte
@@ -105,9 +106,10 @@ func NewBlazeClient(uid, sid, key string) *BlazeClient {
 			transactions: newTmap(),
 			readDone:     make(chan bool, 1),
 			writeDone:    make(chan bool, 1),
+			ackDone:      make(chan bool, 1),
 			readBuffer:   make(chan MessageView, 102400),
 			writeBuffer:  make(chan []byte, 102400),
-			ackBuffer:    make(chan string, ackLimit*2),
+			ackBuffer:    make(chan string, 102400),
 		},
 		uid: uid,
 		sid: sid,
@@ -232,6 +234,8 @@ func connectMixinBlaze(uid, sid, key string) (*websocket.Conn, error) {
 }
 
 func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) error {
+	log := logger.FromContext(ctx)
+
 	ticker := time.NewTicker(time.Second)
 	defer func() {
 		ticker.Stop()
@@ -243,11 +247,9 @@ func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) erro
 
 	for {
 		select {
-		case id, ok := <-mc.ackBuffer:
-			if !ok {
-				return nil
-			}
-
+		case <-mc.ackDone:
+			return nil
+		case id := <-mc.ackBuffer:
 			messages = append(messages, map[string]interface{}{
 				"message_id": id,
 				"status":     "READ",
@@ -264,10 +266,10 @@ func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) erro
 			if err := writeMessageAndWait(ctx, mc, "ACKNOWLEDGE_MESSAGE_RECEIPTS", map[string]interface{}{
 				"messages": messages,
 			}); err != nil {
+				log.WithError(err).Error("ask messages")
 				return err
 			}
 
-			log := logger.FromContext(ctx)
 			log.Infof("ack %d messages", len(messages))
 			messages = make([]interface{}, 0, ackLimit)
 		}
@@ -281,7 +283,7 @@ func readPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) err
 		conn.Close()
 		mc.writeDone <- true
 		mc.readDone <- true
-		close(mc.ackBuffer)
+		mc.ackDone <- true
 	}()
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -337,53 +339,47 @@ func writePump(ctx context.Context, conn *websocket.Conn, mc *messageContext) er
 	}
 }
 
-func writeMessageWithNoWait(ctx context.Context, mc *messageContext, action string, params map[string]interface{}) error {
-	var id = UuidNewV4().String()
-	blazeMessage, err := json.Marshal(BlazeMessage{Id: id, Action: action, Params: params})
-	if err != nil {
-		return err
-	}
-
-	timer := time.NewTimer(keepAlivePeriod)
-
-	select {
-	case <-timer.C:
-		return fmt.Errorf("timeout to write %s %v", action, params)
-	case mc.writeBuffer <- blazeMessage:
-	}
-
-	timer.Stop()
-	return nil
-}
-
 func writeMessageAndWait(ctx context.Context, mc *messageContext, action string, params map[string]interface{}) error {
 	var resp = make(chan BlazeMessage, 1)
 	var id = UuidNewV4().String()
 	mc.transactions.set(id, func(t BlazeMessage) error {
+		timer := time.NewTimer(time.Second)
+
 		select {
 		case resp <- t:
-		case <-time.After(1 * time.Second):
+			timer.Stop()
+		case <-timer.C:
 			return fmt.Errorf("timeout to hook %s %s", action, id)
 		}
 		return nil
 	})
+
 	blazeMessage, err := json.Marshal(BlazeMessage{Id: id, Action: action, Params: params})
 	if err != nil {
 		return err
 	}
+
+	t1 := time.NewTimer(keepAlivePeriod)
+
 	select {
-	case <-time.After(keepAlivePeriod):
+	case <-t1.C:
 		return fmt.Errorf("timeout to write %s %v", action, params)
 	case mc.writeBuffer <- blazeMessage:
+		t1.Stop()
 	}
+
+	t2 := time.NewTimer(keepAlivePeriod)
 	select {
-	case <-time.After(keepAlivePeriod):
+	case <-t2.C:
 		return fmt.Errorf("timeout to wait %s %v", action, params)
 	case t := <-resp:
+		t2.Stop()
+
 		if t.Error != nil && t.Error.Code != 403 {
 			return writeMessageAndWait(ctx, mc, action, params)
 		}
 	}
+
 	return nil
 }
 

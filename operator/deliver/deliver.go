@@ -84,7 +84,7 @@ func (d *Deliver) Run(ctx context.Context) error {
 
 	d.fromID = value.Int64()
 
-	dur := time.Millisecond
+	dur := 20 * time.Millisecond
 	timer := time.NewTimer(dur)
 
 	for {
@@ -97,7 +97,7 @@ func (d *Deliver) Run(ctx context.Context) error {
 			} else if num == 0 {
 				dur = 300 * time.Millisecond
 			} else {
-				dur = 1 * time.Millisecond
+				dur = 20 * time.Millisecond
 			}
 
 			timer.Reset(dur)

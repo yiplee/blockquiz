@@ -115,8 +115,9 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 			cmd.Action = core.ActionAnswerQuestion
 			cmd.Question = task.Question
 			cmd.Answer = -1
+		} else if cmd.Action == core.ActionShowQuestion && task.Question > 0 {
+			cmd.Action = core.ActionShowQuestion
 		} else if cmd.Action != core.ActionAnswerQuestion {
-			// cmd.Action = core.ActionShowQuestion
 			skip = true
 		}
 
@@ -192,7 +193,7 @@ func (c *commandContext) handleCommand(ctx context.Context, cmd *core.Command) (
 		}
 
 		if right := c.question.Answer == cmd.Answer; right {
-			requests = append(requests, c.showAnswerFeedback(ctx, true))
+			// requests = append(requests, c.showAnswerFeedback(ctx, true))
 			task.Question += 1
 			// 下一题
 			if c.question, _ = c.course.Question(task.Question); c.question != nil {

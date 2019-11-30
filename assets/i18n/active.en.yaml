@@ -26,3 +26,5 @@ answer_wrong_with_right_choice: The answer is wrong, the correct answer is {{.an
 next_question: Next question
 finish_course: You have completed the course {{.title}}.
 next_course: Next Course
+
+question_tip: Please click on the option below
