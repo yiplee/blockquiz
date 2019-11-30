@@ -9,10 +9,11 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
-	limit      = 300
+	limit      = 2000
 	batchLimit = 70
 )
 
@@ -52,8 +53,6 @@ func (m *Messenger) Run(ctx context.Context, dur time.Duration) error {
 func (m *Messenger) run(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
-	start := time.Now()
-
 	list, err := m.messages.ListPending(ctx, limit)
 	if err != nil {
 		log.WithError(err).Error("list pending messages")
@@ -64,16 +63,10 @@ func (m *Messenger) run(ctx context.Context) error {
 		return nil
 	}
 
-	log.Debugf("list %d pending messages in %s", len(list), time.Since(start))
-
 	users := map[string]bool{}
 
 	var idx int
 	for _, msg := range list {
-		if idx >= batchLimit {
-			break
-		}
-
 		if users[msg.UserID] {
 			continue
 		}
@@ -84,30 +77,48 @@ func (m *Messenger) run(ctx context.Context) error {
 	}
 
 	list = list[:idx]
+	start := time.Now()
+	var g errgroup.Group
+	for idx := 0; idx < len(list); idx += batchLimit {
+		r := idx + batchLimit
+		if r >= len(list) {
+			r = len(list)
+		}
 
-	requests := make([]*bot.MessageRequest, len(list))
-	for idx, msg := range list {
+		messages := list[idx:r]
+
+		g.Go(func() error {
+			if err := m.postMessages(ctx, messages); err != nil {
+				log.WithError(err).Error("post messages")
+				return nil
+			}
+
+			if err := m.messages.Deletes(ctx, messages); err != nil {
+				log.WithError(err).Error("delete messages")
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	log.Infof("post %d messages in %s", len(list), time.Since(start))
+
+	return nil
+}
+
+func (m *Messenger) postMessages(ctx context.Context, messages []*core.Message) error {
+	requests := make([]*bot.MessageRequest, len(messages))
+	for idx, msg := range messages {
 		var req bot.MessageRequest
 		if jsoniter.UnmarshalFromString(msg.Body, &req) == nil {
 			requests[idx] = &req
 		}
 	}
 
-	start = time.Now()
-	if err := bot.PostMessages(ctx, requests, m.cfg.ClientID, m.cfg.SessionID, m.cfg.SessionKey); err != nil {
-		log.WithError(err).Error("post messages")
-		return err
-	}
-
-	log.Debugf("post %d messages in batch %s", len(requests), time.Since(start))
-
-	start = time.Now()
-	if err := m.messages.Deletes(ctx, list); err != nil {
-		log.WithError(err).Error("delete messages")
-		return err
-	}
-
-	log.Debugf("delete %d pending messages in %s", len(list), time.Since(start))
-
-	return nil
+	return bot.PostMessages(ctx, requests, m.cfg.ClientID, m.cfg.SessionID, m.cfg.SessionKey)
 }
