@@ -115,8 +115,8 @@ func (c *commandContext) preHandleCommand(ctx context.Context, cmd *core.Command
 			cmd.Action = core.ActionAnswerQuestion
 			cmd.Question = task.Question
 			cmd.Answer = -1
-		} else if cmd.Action == core.ActionShowQuestion && task.Question > 0 {
-			cmd.Action = core.ActionShowQuestion
+			// } else if cmd.Action == core.ActionShowQuestion && task.Question > 0 {
+			// cmd.Action = core.ActionShowQuestion
 		} else if cmd.Action != core.ActionAnswerQuestion {
 			skip = true
 		}
