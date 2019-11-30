@@ -20,6 +20,7 @@ const (
 	writeWait       = 10 * time.Second
 	pongWait        = 10 * time.Second
 	pingPeriod      = (pongWait * 9) / 10
+	ackLimit        = 80
 
 	createMessageAction = "CREATE_MESSAGE"
 )
@@ -75,6 +76,7 @@ type messageContext struct {
 	readDone     chan bool
 	writeDone    chan bool
 	readBuffer   chan MessageView
+	ackBuffer    chan string
 	writeBuffer  chan []byte
 }
 
@@ -104,6 +106,7 @@ func NewBlazeClient(uid, sid, key string) *BlazeClient {
 			writeDone:    make(chan bool, 1),
 			readBuffer:   make(chan MessageView, 102400),
 			writeBuffer:  make(chan []byte, 102400),
+			ackBuffer:    make(chan string, ackLimit*2),
 		},
 		uid: uid,
 		sid: sid,
@@ -120,9 +123,12 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 	defer conn.Close()
 	go writePump(ctx, conn, b.mc)
 	go readPump(ctx, conn, b.mc)
+	go ackPump(ctx, conn, b.mc)
+
 	if err = writeMessageAndWait(ctx, b.mc, "LIST_PENDING_MESSAGES", nil); err != nil {
 		return BlazeServerError(ctx, err)
 	}
+
 	for {
 		select {
 		case <-b.mc.readDone:
@@ -132,10 +138,8 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 			if err != nil {
 				return err
 			}
-			params := map[string]interface{}{"message_id": msg.MessageId, "status": "READ"}
-			if err = writeMessageWithNoWait(ctx, b.mc, "ACKNOWLEDGE_MESSAGE_RECEIPT", params); err != nil {
-				return BlazeServerError(ctx, err)
-			}
+
+			b.mc.ackBuffer <- msg.MessageId
 		}
 	}
 }
@@ -226,11 +230,55 @@ func connectMixinBlaze(uid, sid, key string) (*websocket.Conn, error) {
 	return conn, nil
 }
 
+func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) error {
+	ticker := time.NewTicker(time.Second)
+	defer func() {
+		ticker.Stop()
+		conn.Close()
+	}()
+
+	messages := make([]interface{}, 0, ackLimit)
+	ack := false
+
+	for {
+		select {
+		case id, ok := <-mc.ackBuffer:
+			if !ok {
+				return nil
+			}
+
+			messages = append(messages, map[string]interface{}{
+				"message_id": id,
+				"status":     "READ",
+			})
+
+			if len(messages) >= ackLimit {
+				ack = true
+			}
+		case <-ticker.C:
+			ack = len(messages) > 0
+		}
+
+		if ack {
+			if err := writeMessageAndWait(ctx, mc, "ACKNOWLEDGE_MESSAGE_RECEIPTS", map[string]interface{}{
+				"messages": messages,
+			}); err != nil {
+				return err
+			}
+
+			messages = make([]interface{}, 0, ackLimit)
+		}
+
+		ack = false
+	}
+}
+
 func readPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) error {
 	defer func() {
 		conn.Close()
 		mc.writeDone <- true
 		mc.readDone <- true
+		close(mc.ackBuffer)
 	}()
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
