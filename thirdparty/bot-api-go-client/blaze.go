@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fox-one/pkg/logger"
 	"github.com/gorilla/websocket"
 )
 
@@ -266,6 +267,8 @@ func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) erro
 				return err
 			}
 
+			log := logger.FromContext(ctx)
+			log.Infof("ack %d messages", len(messages))
 			messages = make([]interface{}, 0, ackLimit)
 		}
 
