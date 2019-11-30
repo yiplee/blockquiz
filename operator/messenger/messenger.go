@@ -77,7 +77,7 @@ func (m *Messenger) run(ctx context.Context) error {
 	}
 
 	list = list[:idx]
-	start := time.Now()
+
 	var g errgroup.Group
 	for idx := 0; idx < len(list); idx += batchLimit {
 		r := idx + batchLimit
@@ -98,6 +98,7 @@ func (m *Messenger) run(ctx context.Context) error {
 				return err
 			}
 
+			log.Infof("post %d messages", len(messages))
 			return nil
 		})
 	}
@@ -105,8 +106,6 @@ func (m *Messenger) run(ctx context.Context) error {
 	if err := g.Wait(); err != nil {
 		return err
 	}
-
-	log.Infof("post %d messages in %s", len(list), time.Since(start))
 
 	return nil
 }
