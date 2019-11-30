@@ -98,7 +98,7 @@ func runEngine(ctx context.Context) error {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/go", func(w http.ResponseWriter, r *http.Request) {
 			num := strconv.FormatInt(int64(runtime.NumGoroutine()), 10)
-			w.Write([]byte(num))
+			_, _ = w.Write([]byte(num))
 		})
 
 		return http.ListenAndServe("127.0.0.1:6061", mux)
