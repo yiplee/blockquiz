@@ -3,7 +3,6 @@ package cmd
 import (
 	"math/rand"
 	"os"
-	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -42,7 +41,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.blockquiz.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug mode")
 	rootCmd.PersistentFlags().String("dialect", "mysql", "db dialect")
 	_ = viper.BindPFlag("db.dialect", rootCmd.PersistentFlags().Lookup("dialect"))
@@ -52,12 +51,7 @@ func init() {
 
 func initConfig() {
 	if cfgFile == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			logrus.Fatal(err)
-		}
-
-		cfgFile = path.Join(home, ".blockquiz.yaml")
+		cfgFile = "./config.yaml"
 	}
 
 	c, err := config.Load(cfgFile)
