@@ -2,11 +2,7 @@ package cmd
 
 import (
 	"context"
-	"net/http"
-	"runtime"
-	"strconv"
-
-	_ "net/http/pprof"
+	// _ "net/http/pprof"
 
 	"github.com/spf13/cobra"
 	"github.com/yiplee/blockquiz/operator/deliver"
@@ -93,19 +89,19 @@ func runEngine(ctx context.Context) error {
 		return m.Run(ctx)
 	})
 
-	g.Go(func() error {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/go", func(w http.ResponseWriter, r *http.Request) {
-			num := strconv.FormatInt(int64(runtime.NumGoroutine()), 10)
-			_, _ = w.Write([]byte(num))
-		})
-
-		return http.ListenAndServe("127.0.0.1:6061", mux)
-	})
-
-	g.Go(func() error {
-		return http.ListenAndServe("127.0.0.1:6060", nil)
-	})
+	// g.Go(func() error {
+	// 	mux := http.NewServeMux()
+	// 	mux.HandleFunc("/go", func(w http.ResponseWriter, r *http.Request) {
+	// 		num := strconv.FormatInt(int64(runtime.NumGoroutine()), 10)
+	// 		_, _ = w.Write([]byte(num))
+	// 	})
+	//
+	// 	return http.ListenAndServe("127.0.0.1:6061", mux)
+	// })
+	//
+	// g.Go(func() error {
+	// 	return http.ListenAndServe("127.0.0.1:6060", nil)
+	// })
 
 	return g.Wait()
 }
