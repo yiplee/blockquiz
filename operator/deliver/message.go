@@ -1,7 +1,6 @@
 package deliver
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -10,9 +9,12 @@ import (
 	"github.com/fox-one/pkg/text/localizer"
 	"github.com/fox-one/pkg/uuid"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/oxtoacart/bpool"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
+
+var bufferPool = bpool.NewBufferPool(64)
 
 // func (c *commandContext) paymentButtonAction(ctx context.Context, traceID string, cmds ...*core.Command) string {
 // 	uri, _ := url.Parse("mixin://pay")
@@ -165,24 +167,25 @@ func (c *commandContext) showCourseContent(ctx context.Context) *bot.MessageRequ
 
 	course := c.course
 
-	var buf bytes.Buffer
+	buf := bufferPool.Get()
 	if c.task.Info != "" {
-		fmt.Fprintln(&buf, c.task.Info)
-		fmt.Fprintln(&buf) // 换行
+		fmt.Fprintln(buf, c.task.Info)
+		fmt.Fprintln(buf) // 换行
 	}
 
 	if c.course.Title != "" {
-		fmt.Fprintln(&buf, c.course.Title)
-		fmt.Fprintln(&buf) // 换行
+		fmt.Fprintln(buf, c.course.Title)
+		fmt.Fprintln(buf) // 换行
 	}
 
 	if course.URL == "" {
-		fmt.Fprintln(&buf, course.Content)
+		fmt.Fprintln(buf, course.Content)
 	} else {
-		fmt.Fprintln(&buf, course.Summary)
+		fmt.Fprintln(buf, course.Summary)
 	}
 
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
+	bufferPool.Put(buf)
 	return req
 }
 
@@ -227,17 +230,26 @@ func (c *commandContext) showQuestionContent(ctx context.Context) *bot.MessageRe
 
 	task := c.task
 
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%d/%d ", task.Question+1, len(c.course.Questions))
-	fmt.Fprintln(&buf, c.question.Content)
-	fmt.Fprintln(&buf)
-	for idx, choice := range c.question.Choices {
-		fmt.Fprintf(&buf, "[%s] %s\n", core.AnswerToString(idx), choice)
-	}
-	fmt.Fprintln(&buf)
-	fmt.Fprintln(&buf, c.Localizer().MustLocalize("question_tip"))
+	buf := bufferPool.Get()
 
+	buf.WriteString(strconv.Itoa(task.Question + 1))
+	buf.WriteString("/")
+	buf.WriteString(strconv.Itoa(len(c.course.Questions)))
+	buf.WriteString(" ")
+	buf.WriteString(c.question.Content)
+	buf.WriteString("\n\n")
+	for idx, choice := range c.question.Choices {
+		buf.WriteString("[")
+		buf.WriteString(core.AnswerToString(idx))
+		buf.WriteString("] ")
+		buf.WriteString(choice)
+		buf.WriteString("\n")
+	}
+	buf.WriteString("\n")
+	buf.WriteString(c.Localizer().MustLocalize("question_tip"))
 	req.Data = base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	bufferPool.Put(buf)
 	return req
 }
 
