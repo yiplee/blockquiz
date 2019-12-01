@@ -22,7 +22,7 @@ const (
 	writeWait       = 10 * time.Second
 	pongWait        = 10 * time.Second
 	pingPeriod      = (pongWait * 9) / 10
-	ackLimit        = 80
+	ackLimit        = 40
 
 	createMessageAction = "CREATE_MESSAGE"
 )
@@ -268,7 +268,7 @@ func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) erro
 				"messages": messages,
 			}); err != nil {
 				log.WithError(err).Error("ask messages")
-				return err
+				continue
 			}
 
 			log.Infof("ack %d messages", len(messages))
