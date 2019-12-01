@@ -132,8 +132,7 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 		case <-b.mc.readDone:
 			return nil
 		case msg := <-b.mc.readBuffer:
-			err = listener.OnMessage(ctx, msg, b.uid)
-			if err != nil {
+			if err := listener.OnMessage(ctx, msg, b.uid); err != nil {
 				return err
 			}
 		}
