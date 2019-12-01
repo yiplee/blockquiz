@@ -5,6 +5,7 @@ import (
 	// _ "net/http/pprof"
 
 	"github.com/spf13/cobra"
+	"github.com/yiplee/blockquiz/operator/acker"
 	"github.com/yiplee/blockquiz/operator/deliver"
 	"github.com/yiplee/blockquiz/operator/hub"
 	"github.com/yiplee/blockquiz/operator/messenger"
@@ -87,6 +88,16 @@ func runEngine(ctx context.Context) error {
 		})
 
 		return m.Run(ctx)
+	})
+
+	g.Go(func() error {
+		a := acker.New(commands, property, acker.Config{
+			ClientID:   cfg.Bot.ClientID,
+			SessionID:  cfg.Bot.SessionID,
+			SessionKey: cfg.Bot.SessionKey,
+		})
+
+		return a.Run(ctx)
 	})
 
 	// g.Go(func() error {

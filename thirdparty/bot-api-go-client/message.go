@@ -30,6 +30,11 @@ type MessageRequest struct {
 	QuoteMessageId   string `json:"quote_message_id"`
 }
 
+type AcknowledgementRequest struct {
+	MessageID string `json:"message_id,omitempty"`
+	Status    string `json:"status,omitempty"`
+}
+
 func PostMessages(ctx context.Context, messages []*MessageRequest, clientId, sessionId, secret string) error {
 	msg, err := jsoniter.Marshal(messages)
 	if err != nil {
@@ -65,6 +70,32 @@ func PostMessage(ctx context.Context, conversationId, recipientId, messageId, ca
 		Data:           data,
 	}
 	return PostMessages(ctx, []*MessageRequest{&request}, clientId, sessionId, secret)
+}
+
+func PostAcknowledgements(ctx context.Context, requests []*AcknowledgementRequest, clientId, sessionId, secret string) error {
+	msg, err := jsoniter.Marshal(requests)
+	if err != nil {
+		return err
+	}
+	accessToken, err := SignAuthenticationToken(clientId, sessionId, secret, "POST", "/acknowledgements", string(msg))
+	if err != nil {
+		return err
+	}
+	body, err := Request(ctx, "POST", "/acknowledgements", msg, accessToken)
+	if err != nil {
+		return err
+	}
+	var resp struct {
+		Error Error `json:"error"`
+	}
+	err = jsoniter.Unmarshal(body, &resp)
+	if err != nil {
+		return err
+	}
+	if resp.Error.Code > 0 {
+		return resp.Error
+	}
+	return nil
 }
 
 func UniqueConversationId(userId, recipientId string) string {

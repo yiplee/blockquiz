@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fox-one/pkg/logger"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -77,9 +76,7 @@ type messageContext struct {
 	transactions *tmap
 	readDone     chan bool
 	writeDone    chan bool
-	ackDone      chan bool
 	readBuffer   chan MessageView
-	ackBuffer    chan string
 	writeBuffer  chan []byte
 }
 
@@ -107,10 +104,8 @@ func NewBlazeClient(uid, sid, key string) *BlazeClient {
 			transactions: newTmap(),
 			readDone:     make(chan bool, 1),
 			writeDone:    make(chan bool, 1),
-			ackDone:      make(chan bool, 1),
 			readBuffer:   make(chan MessageView, 102400),
 			writeBuffer:  make(chan []byte, 102400),
-			ackBuffer:    make(chan string, 102400),
 		},
 		uid: uid,
 		sid: sid,
@@ -127,7 +122,6 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 	defer conn.Close()
 	go writePump(ctx, conn, b.mc)
 	go readPump(ctx, conn, b.mc)
-	go ackPump(ctx, conn, b.mc)
 
 	if err = writeMessageAndWait(ctx, b.mc, "LIST_PENDING_MESSAGES", nil); err != nil {
 		return BlazeServerError(ctx, err)
@@ -142,8 +136,6 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 			if err != nil {
 				return err
 			}
-
-			b.mc.ackBuffer <- msg.MessageId
 		}
 	}
 }
@@ -234,57 +226,11 @@ func connectMixinBlaze(uid, sid, key string) (*websocket.Conn, error) {
 	return conn, nil
 }
 
-func ackPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) error {
-	log := logger.FromContext(ctx)
-
-	ticker := time.NewTicker(time.Second)
-	defer func() {
-		ticker.Stop()
-		conn.Close()
-	}()
-
-	messages := make([]interface{}, 0, ackLimit)
-	ack := false
-
-	for {
-		select {
-		case <-mc.ackDone:
-			return nil
-		case id := <-mc.ackBuffer:
-			messages = append(messages, map[string]interface{}{
-				"message_id": id,
-				"status":     "READ",
-			})
-
-			if len(messages) >= ackLimit {
-				ack = true
-			}
-		case <-ticker.C:
-			ack = len(messages) > 0
-		}
-
-		if ack {
-			if err := writeMessageAndWait(ctx, mc, "ACKNOWLEDGE_MESSAGE_RECEIPTS", map[string]interface{}{
-				"messages": messages,
-			}); err != nil {
-				log.WithError(err).Error("ask messages")
-				continue
-			}
-
-			log.Infof("ack %d messages", len(messages))
-			messages = make([]interface{}, 0, ackLimit)
-		}
-
-		ack = false
-	}
-}
-
 func readPump(ctx context.Context, conn *websocket.Conn, mc *messageContext) error {
 	defer func() {
 		conn.Close()
 		mc.writeDone <- true
 		mc.readDone <- true
-		mc.ackDone <- true
 	}()
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
