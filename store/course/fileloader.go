@@ -1,7 +1,9 @@
 package course
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,13 +16,13 @@ import (
 )
 
 type fileLoader struct {
-	courses []*core.Course
+	courses []json.RawMessage
 	indexes map[string]int
 }
 
 func LoadCourses(courseFolder string) core.CourseStore {
 	s := &fileLoader{
-		courses: make([]*core.Course, 0),
+		courses: make([]json.RawMessage, 0),
 		indexes: make(map[string]int),
 	}
 
@@ -80,7 +82,8 @@ func (s *fileLoader) insert(course *core.Course) error {
 		return fmt.Errorf("dumplicated course %s %s inserted", course.Title, course.Language)
 	}
 
-	s.courses = append(s.courses, course)
+	data, _ := jsoniter.Marshal(course)
+	s.courses = append(s.courses, data)
 	s.indexes[key] = len(s.courses) - 1
 	return nil
 }
@@ -90,23 +93,34 @@ func (s *fileLoader) Add(ctx context.Context, course *core.Course) error {
 }
 
 func (s *fileLoader) ListAll(ctx context.Context) ([]*core.Course, error) {
-	courses := make([]*core.Course, 0, len(s.courses))
-	for _, course := range s.courses {
-		courses = append(courses, copyCourse(course))
+	buff := &bytes.Buffer{}
+	if err := jsoniter.NewEncoder(buff).Encode(s.courses); err != nil {
+		return nil, err
+	}
+
+	var courses []*core.Course
+	if err := jsoniter.NewDecoder(buff).Decode(&courses); err != nil {
+		return nil, err
 	}
 
 	return courses, nil
 }
 
 func (s *fileLoader) ListLanguage(ctx context.Context, language string) ([]*core.Course, error) {
-	courses := make([]*core.Course, 0, len(s.courses))
-	for _, course := range s.courses {
-		if course := course; course.Language == language {
-			courses = append(courses, copyCourse(course))
+	courses, err := s.ListAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var idx int
+	for _, course := range courses {
+		if course.Language == language {
+			courses[idx] = course
+			idx++
 		}
 	}
 
-	return courses, nil
+	return courses[:idx], nil
 }
 
 func (s *fileLoader) Find(ctx context.Context, title, language string) (*core.Course, error) {
@@ -116,13 +130,8 @@ func (s *fileLoader) Find(ctx context.Context, title, language string) (*core.Co
 		return nil, store.ErrNotFound
 	}
 
-	course := s.courses[idx]
-	return copyCourse(course), nil
-}
-
-func copyCourse(course *core.Course) *core.Course {
-	data, _ := jsoniter.Marshal(course)
-	var cpy core.Course
-	_ = jsoniter.Unmarshal(data, &cpy)
-	return &cpy
+	data := s.courses[idx]
+	var course core.Course
+	err := jsoniter.Unmarshal(data, &course)
+	return &course, err
 }
