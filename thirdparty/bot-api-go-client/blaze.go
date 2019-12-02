@@ -16,10 +16,9 @@ import (
 )
 
 const (
-	keepAlivePeriod = 3 * time.Second
-	writeWait       = 10 * time.Second
-	pongWait        = 10 * time.Second
-	pingPeriod      = (pongWait * 9) / 10
+	writeWait  = 10 * time.Second
+	pongWait   = 10 * time.Second
+	pingPeriod = pongWait * 8 / 10
 
 	createMessageAction = "CREATE_MESSAGE"
 )
@@ -114,13 +113,17 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 	)
 
 	for {
+		if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+			return err
+		}
+
 		typ, r, err := conn.NextReader()
 		if err != nil {
 			return err
 		}
 
 		if typ != websocket.BinaryMessage {
-			continue
+			return fmt.Errorf("invalid message type %d", typ)
 		}
 
 		if err := parseBlazeMessage(r, &blazeMessage); err != nil {
@@ -154,12 +157,16 @@ func connectMixinBlaze(c *Credential) (*websocket.Conn, error) {
 	header.Add("Authorization", "Bearer "+token)
 	u := url.URL{Scheme: "wss", Host: "mixin-blaze.zeromesh.net", Path: "/"}
 	dialer := &websocket.Dialer{
-		Subprotocols: []string{"Mixin-Blaze-1"},
+		Subprotocols:   []string{"Mixin-Blaze-1"},
+		ReadBufferSize: 4096 * 2 * 2 * 2,
 	}
 	conn, _, err := dialer.Dial(u.String(), header)
 	if err != nil {
 		return nil, err
 	}
+
+	// no limit
+	conn.SetReadLimit(0)
 	return conn, nil
 }
 
@@ -169,6 +176,10 @@ func tick(ctx context.Context, conn *websocket.Conn) error {
 		ticker.Stop()
 		_ = conn.Close()
 	}()
+
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(pongWait))
+	})
 
 	for {
 		select {
