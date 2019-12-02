@@ -2,11 +2,11 @@ package messenger
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/fox-one/pkg/logger"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/yiplee/blockquiz/core"
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 	"golang.org/x/sync/errgroup"
@@ -75,7 +75,8 @@ func (m *Messenger) run(ctx context.Context) (int, error) {
 	users := map[string]bool{}
 
 	var idx int
-	for _, msg := range list {
+	for i := range list {
+		msg := list[i]
 		if users[msg.UserID] {
 			continue
 		}
@@ -120,13 +121,10 @@ func (m *Messenger) run(ctx context.Context) (int, error) {
 }
 
 func (m *Messenger) postMessages(ctx context.Context, messages []*core.Message) error {
-	requests := make([]*bot.MessageRequest, len(messages))
-	for idx, msg := range messages {
-		var req bot.MessageRequest
-		if jsoniter.UnmarshalFromString(msg.Body, &req) == nil {
-			requests[idx] = &req
-		}
+	requests := make([]json.RawMessage, len(messages))
+	for idx := range messages {
+		requests[idx] = json.RawMessage(messages[idx].Body)
 	}
 
-	return bot.PostMessages(ctx, m.credential, requests)
+	return bot.PostRawMessages(ctx, m.credential, requests)
 }

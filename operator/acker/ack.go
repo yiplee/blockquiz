@@ -118,7 +118,8 @@ func (a *Acker) run(ctx context.Context) (int, error) {
 
 func (a *Acker) ack(ctx context.Context, commands []*core.Command) error {
 	acks := make([]*bot.AcknowledgementRequest, len(commands))
-	for idx, cmd := range commands {
+	for idx := range commands {
+		cmd := commands[idx]
 		acks[idx] = &bot.AcknowledgementRequest{
 			MessageID: cmd.TraceID,
 			Status:    "READ",

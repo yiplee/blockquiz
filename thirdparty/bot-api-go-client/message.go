@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 	"crypto/md5"
+	"encoding/json"
 	"io"
 	"strings"
 
@@ -36,6 +37,32 @@ type AcknowledgementRequest struct {
 }
 
 func PostMessages(ctx context.Context, c *Credential, messages []*MessageRequest) error {
+	msg, err := jsoniter.Marshal(messages)
+	if err != nil {
+		return err
+	}
+	accessToken, err := SignAuthenticationTokenByCredential(c, "POST", "/messages", string(msg))
+	if err != nil {
+		return err
+	}
+	body, err := Request(ctx, "POST", "/messages", msg, accessToken)
+	if err != nil {
+		return err
+	}
+	var resp struct {
+		Error Error `json:"error"`
+	}
+	err = jsoniter.Unmarshal(body, &resp)
+	if err != nil {
+		return err
+	}
+	if resp.Error.Code > 0 {
+		return resp.Error
+	}
+	return nil
+}
+
+func PostRawMessages(ctx context.Context, c *Credential, messages []json.RawMessage) error {
 	msg, err := jsoniter.Marshal(messages)
 	if err != nil {
 		return err
