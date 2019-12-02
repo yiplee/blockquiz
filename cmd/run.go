@@ -43,17 +43,15 @@ func runEngine(ctx context.Context) error {
 	messages := provideMessageStore(db)
 	property := providePropertyStore(db)
 
-	if !cfg.Hub.Disable {
-		g.Go(func() error {
-			h := hub.New(commands, commandParser, hub.Config{
-				ClientID:   cfg.Bot.ClientID,
-				SessionID:  cfg.Bot.SessionID,
-				SessionKey: cfg.Bot.SessionKey,
-			})
-
-			return h.Run(ctx)
+	g.Go(func() error {
+		h := hub.New(commands, commandParser, hub.Config{
+			ClientID:   cfg.Bot.ClientID,
+			SessionID:  cfg.Bot.SessionID,
+			SessionKey: cfg.Bot.SessionKey,
 		})
-	}
+
+		return h.Run(ctx)
+	})
 
 	g.Go(func() error {
 		d := deliver.New(
