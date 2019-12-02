@@ -118,10 +118,7 @@ func (d *Deliver) poll(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	log.Infof("list %d pending commands", len(commands))
 	groups, next := groupCommands(commands)
-
-	start := time.Now()
 
 	var g errgroup.Group
 	for _, group := range groups {
@@ -141,7 +138,7 @@ func (d *Deliver) poll(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	log.Infof("handle %d commands for %d users in %s", len(commands), len(groups), time.Since(start))
+	log.Infof("handle %d commands for %d users", len(commands), len(groups))
 
 	if err := d.property.Save(ctx, checkpointKey, next); err != nil {
 		log.WithError(err).Errorf("save checkpoint %s", checkpointKey)

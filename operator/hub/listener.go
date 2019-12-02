@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/fox-one/pkg/logger"
 	"github.com/fox-one/pkg/number"
@@ -15,10 +14,12 @@ import (
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
-func (h *Hub) OnMessage(ctx context.Context, msg *bot.MessageView, userId string) error {
-	log := logger.FromContext(ctx).WithField("category", msg.Category)
+const nilUser = "00000000-0000-0000-0000-000000000000"
 
-	if msg.UserId == "00000000-0000-0000-0000-000000000000" {
+func (h *Hub) OnMessage(ctx context.Context, msg *bot.MessageView, userId string) error {
+	log := logger.FromContext(ctx).WithField("user", msg.UserId)
+
+	if msg.UserId == nilUser {
 		return nil
 	}
 
@@ -51,7 +52,7 @@ func (h *Hub) OnMessage(ctx context.Context, msg *bot.MessageView, userId string
 		source = core.CommandSourcePlainText
 	}
 
-	log.WithField("src", source).Debugf("parse input: %s", input)
+	log.Infof("parse input: %s", input)
 	cmds, err := h.parser.Parse(ctx, input)
 	if err != nil {
 		return nil
@@ -68,12 +69,10 @@ func (h *Hub) OnMessage(ctx context.Context, msg *bot.MessageView, userId string
 		cmd.UserID = msg.UserId
 		cmd.Source = source
 
-		start := time.Now()
 		if err := h.commands.Create(ctx, cmd); err != nil {
 			log.WithError(err).Error("create command")
 			return err
 		}
-		log.Infof("insert command in %s", time.Since(start))
 	}
 
 	return nil

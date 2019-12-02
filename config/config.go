@@ -13,7 +13,6 @@ import (
 type (
 	Config struct {
 		DB      db.Config `json:"db,omitempty"`
-		AWS     AWS       `json:"aws,omitempty"`
 		Bot     Bot       `json:"bot,omitempty"`
 		Course  Course    `json:"course,omitempty"`
 		I18n    I18n      `json:"i18n,omitempty"`
@@ -27,13 +26,6 @@ type (
 		SessionKey string `json:"session_key,omitempty"`
 		PinToken   string `json:"pin_token,omitempty"`
 		Pin        string `json:"pin,omitempty"`
-	}
-
-	AWS struct {
-		Key      string `json:"key,omitempty"`
-		Secret   string `json:"secret,omitempty"`
-		Region   string `json:"region,omitempty"`
-		QueueURL string `json:"queue_url,omitempty"`
 	}
 
 	Course struct {
