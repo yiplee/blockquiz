@@ -8,12 +8,9 @@ import (
 	"time"
 )
 
-var httpClient *http.Client
+var httpClient = &http.Client{Timeout: 5 * time.Second}
 
 func Request(ctx context.Context, method, path string, body []byte, accessToken string) ([]byte, error) {
-	if httpClient == nil {
-		httpClient = &http.Client{Timeout: 10 * time.Second}
-	}
 	req, err := http.NewRequest(method, "https://mixin-api.zeromesh.net"+path, bytes.NewReader(body))
 	if err != nil {
 		return nil, err

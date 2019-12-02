@@ -35,12 +35,12 @@ type AcknowledgementRequest struct {
 	Status    string `json:"status,omitempty"`
 }
 
-func PostMessages(ctx context.Context, messages []*MessageRequest, clientId, sessionId, secret string) error {
+func PostMessages(ctx context.Context, c *Credential, messages []*MessageRequest) error {
 	msg, err := jsoniter.Marshal(messages)
 	if err != nil {
 		return err
 	}
-	accessToken, err := SignAuthenticationToken(clientId, sessionId, secret, "POST", "/messages", string(msg))
+	accessToken, err := SignAuthenticationTokenByCredential(c, "POST", "/messages", string(msg))
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func PostMessages(ctx context.Context, messages []*MessageRequest, clientId, ses
 	return nil
 }
 
-func PostMessage(ctx context.Context, conversationId, recipientId, messageId, category, data string, clientId, sessionId, secret string) error {
+func PostMessage(ctx context.Context, c *Credential, conversationId, recipientId, messageId, category, data string) error {
 	request := MessageRequest{
 		ConversationId: conversationId,
 		RecipientId:    recipientId,
@@ -69,15 +69,15 @@ func PostMessage(ctx context.Context, conversationId, recipientId, messageId, ca
 		Category:       category,
 		Data:           data,
 	}
-	return PostMessages(ctx, []*MessageRequest{&request}, clientId, sessionId, secret)
+	return PostMessages(ctx, c, []*MessageRequest{&request})
 }
 
-func PostAcknowledgements(ctx context.Context, requests []*AcknowledgementRequest, clientId, sessionId, secret string) error {
+func PostAcknowledgements(ctx context.Context, c *Credential, requests []*AcknowledgementRequest) error {
 	msg, err := jsoniter.Marshal(requests)
 	if err != nil {
 		return err
 	}
-	accessToken, err := SignAuthenticationToken(clientId, sessionId, secret, "POST", "/acknowledgements", string(msg))
+	accessToken, err := SignAuthenticationTokenByCredential(c, "POST", "/acknowledgements", string(msg))
 	if err != nil {
 		return err
 	}

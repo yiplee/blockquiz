@@ -12,9 +12,10 @@ import (
 )
 
 type Hub struct {
-	commands core.CommandStore
-	parser   core.CommandParser
-	config   Config
+	commands   core.CommandStore
+	parser     core.CommandParser
+	config     Config
+	credential *bot.Credential
 }
 
 func New(
@@ -26,10 +27,16 @@ func New(
 		panic(err)
 	}
 
+	c, err := bot.NewCredential(config.ClientID, config.SessionID, config.SessionKey)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Hub{
-		commands: commands,
-		parser:   parser,
-		config:   config,
+		commands:   commands,
+		parser:     parser,
+		config:     config,
+		credential: c,
 	}
 }
 
@@ -38,7 +45,7 @@ func (h *Hub) Run(ctx context.Context) error {
 	ctx = logger.WithContext(ctx, log)
 
 	for {
-		blaze := bot.NewBlazeClient(h.config.ClientID, h.config.SessionID, h.config.SessionKey)
+		blaze := bot.NewBlazeClient(h.credential)
 
 		if err := blaze.Loop(ctx, h); err != nil {
 			log.WithError(err).Error("blaze loop")

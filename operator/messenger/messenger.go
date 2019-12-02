@@ -18,8 +18,8 @@ const (
 )
 
 type Messenger struct {
-	messages core.MessageStore
-	cfg      Config
+	messages   core.MessageStore
+	credential *bot.Credential
 }
 
 func New(messages core.MessageStore, cfg Config) *Messenger {
@@ -27,9 +27,14 @@ func New(messages core.MessageStore, cfg Config) *Messenger {
 		panic(err)
 	}
 
+	c, err := bot.NewCredential(cfg.ClientID, cfg.SessionID, cfg.SessionKey)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Messenger{
-		messages: messages,
-		cfg:      cfg,
+		messages:   messages,
+		credential: c,
 	}
 }
 
@@ -123,5 +128,5 @@ func (m *Messenger) postMessages(ctx context.Context, messages []*core.Message) 
 		}
 	}
 
-	return bot.PostMessages(ctx, requests, m.cfg.ClientID, m.cfg.SessionID, m.cfg.SessionKey)
+	return bot.PostMessages(ctx, m.credential, requests)
 }

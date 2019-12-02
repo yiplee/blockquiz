@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
@@ -12,24 +13,50 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+type Credential struct {
+	uid string
+	sid string
+	key *rsa.PrivateKey
+}
+
+func NewCredential(uid, sid, privateKey string) (*Credential, error) {
+	block, _ := pem.Decode([]byte(privateKey))
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &Credential{
+		uid: uid,
+		sid: sid,
+		key: key,
+	}
+
+	return c, nil
+}
+
 func SignAuthenticationToken(uid, sid, privateKey, method, uri, body string) (string, error) {
+	c, err := NewCredential(uid, sid, privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	return SignAuthenticationTokenByCredential(c, method, uri, body)
+}
+
+func SignAuthenticationTokenByCredential(c *Credential, method, uri, body string) (string, error) {
 	expire := time.Now().UTC().Add(time.Hour * 24 * 30 * 3)
 	sum := sha256.Sum256([]byte(method + uri + body))
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"uid": uid,
-		"sid": sid,
+		"uid": c.uid,
+		"sid": c.sid,
 		"iat": time.Now().UTC().Unix(),
 		"exp": expire.Unix(),
 		"jti": UuidNewV4().String(),
 		"sig": hex.EncodeToString(sum[:]),
 	})
 
-	block, _ := pem.Decode([]byte(privateKey))
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return "", err
-	}
-	return token.SignedString(key)
+	return token.SignedString(c.key)
 }
 
 func OAuthGetAccessToken(ctx context.Context, clientId, clientSecret string, authorizationCode string, codeVerifier string) (string, string, error) {

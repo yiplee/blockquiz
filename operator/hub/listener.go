@@ -15,7 +15,7 @@ import (
 	"github.com/yiplee/blockquiz/thirdparty/bot-api-go-client"
 )
 
-func (h *Hub) OnMessage(ctx context.Context, msg bot.MessageView, userId string) error {
+func (h *Hub) OnMessage(ctx context.Context, msg *bot.MessageView, userId string) error {
 	log := logger.FromContext(ctx).WithField("category", msg.Category)
 
 	if msg.UserId == "00000000-0000-0000-0000-000000000000" {

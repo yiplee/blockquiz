@@ -21,19 +21,24 @@ func New(commands core.CommandStore, property core.PropertyStore, cfg Config) *A
 		panic(err)
 	}
 
+	c, err := bot.NewCredential(cfg.ClientID, cfg.SessionID, cfg.SessionKey)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Acker{
-		commands: commands,
-		property: property,
-		cfg:      cfg,
+		commands:   commands,
+		property:   property,
+		credential: c,
 	}
 }
 
 type Acker struct {
 	commands core.CommandStore
 	property core.PropertyStore
-	cfg      Config
 
-	fromID int64
+	credential *bot.Credential
+	fromID     int64
 }
 
 func (a *Acker) Run(ctx context.Context) error {
@@ -120,5 +125,5 @@ func (a *Acker) ack(ctx context.Context, commands []*core.Command) error {
 		}
 	}
 
-	return bot.PostAcknowledgements(ctx, acks, a.cfg.ClientID, a.cfg.SessionID, a.cfg.SessionKey)
+	return bot.PostAcknowledgements(ctx, a.credential, acks)
 }

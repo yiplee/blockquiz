@@ -21,7 +21,6 @@ const (
 	writeWait       = 10 * time.Second
 	pongWait        = 10 * time.Second
 	pingPeriod      = (pongWait * 9) / 10
-	ackLimit        = 40
 
 	createMessageAction = "CREATE_MESSAGE"
 )
@@ -76,7 +75,7 @@ type messageContext struct {
 	transactions *tmap
 	readDone     chan bool
 	writeDone    chan bool
-	readBuffer   chan MessageView
+	readBuffer   chan *MessageView
 	writeBuffer  chan []byte
 }
 
@@ -88,34 +87,30 @@ type systemConversationPayload struct {
 }
 
 type BlazeClient struct {
-	mc  *messageContext
-	uid string
-	sid string
-	key string
+	mc *messageContext
+	c  *Credential
 }
 
 type BlazeListener interface {
-	OnMessage(ctx context.Context, msg MessageView, userId string) error
+	OnMessage(ctx context.Context, msg *MessageView, userId string) error
 }
 
-func NewBlazeClient(uid, sid, key string) *BlazeClient {
+func NewBlazeClient(c *Credential) *BlazeClient {
 	client := BlazeClient{
 		mc: &messageContext{
 			transactions: newTmap(),
 			readDone:     make(chan bool, 1),
 			writeDone:    make(chan bool, 1),
-			readBuffer:   make(chan MessageView, 102400),
-			writeBuffer:  make(chan []byte, 102400),
+			readBuffer:   make(chan *MessageView, 1024),
+			writeBuffer:  make(chan []byte, 1024),
 		},
-		uid: uid,
-		sid: sid,
-		key: key,
+		c: c,
 	}
 	return &client
 }
 
 func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
-	conn, err := connectMixinBlaze(b.uid, b.sid, b.key)
+	conn, err := connectMixinBlaze(b.c)
 	if err != nil {
 		return err
 	}
@@ -132,7 +127,7 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 		case <-b.mc.readDone:
 			return nil
 		case msg := <-b.mc.readBuffer:
-			if err := listener.OnMessage(ctx, msg, b.uid); err != nil {
+			if err := listener.OnMessage(ctx, msg, b.c.uid); err != nil {
 				return err
 			}
 		}
@@ -207,8 +202,8 @@ func (b *BlazeClient) SendAppButton(ctx context.Context, conversationId, recipie
 	return nil
 }
 
-func connectMixinBlaze(uid, sid, key string) (*websocket.Conn, error) {
-	token, err := SignAuthenticationToken(uid, sid, key, "GET", "/", "")
+func connectMixinBlaze(c *Credential) (*websocket.Conn, error) {
+	token, err := SignAuthenticationTokenByCredential(c, "GET", "/", "")
 	if err != nil {
 		return nil, err
 	}
@@ -350,19 +345,21 @@ func writeGzipToConn(conn *websocket.Conn, msg []byte) error {
 }
 
 func parseMessage(ctx context.Context, mc *messageContext, wsReader io.Reader) error {
-	var message BlazeMessage
 	gzReader, err := gzip.NewReader(wsReader)
 	if err != nil {
 		return err
 	}
 	defer gzReader.Close()
+
+	var message BlazeMessage
 	if err = json.NewDecoder(gzReader).Decode(&message); err != nil {
 		return err
 	}
-	transaction := mc.transactions.retrive(message.Id)
-	if transaction != nil {
+
+	if transaction := mc.transactions.retrive(message.Id); transaction != nil {
 		return transaction(message)
 	}
+
 	if message.Action != "CREATE_MESSAGE" {
 		return nil
 	}
@@ -373,14 +370,13 @@ func parseMessage(ctx context.Context, mc *messageContext, wsReader io.Reader) e
 	}
 
 	timer := time.NewTimer(keepAlivePeriod)
-
 	select {
 	case <-timer.C:
 		return fmt.Errorf("timeout to handle %s %s", msg.Category, msg.MessageId)
-	case mc.readBuffer <- msg:
+	case mc.readBuffer <- &msg:
+		timer.Stop()
 	}
 
-	timer.Stop()
 	return nil
 }
 
@@ -399,13 +395,16 @@ func newTmap() *tmap {
 
 func (m *tmap) retrive(key string) mixinTransaction {
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	defer delete(m.m, key)
-	return m.m[key]
+	t, ok := m.m[key]
+	if ok {
+		delete(m.m, key)
+	}
+	m.mutex.Unlock()
+	return t
 }
 
 func (m *tmap) set(key string, t mixinTransaction) {
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
 	m.m[key] = t
+	m.mutex.Unlock()
 }
