@@ -228,11 +228,8 @@ func parseBlazeMessage(r io.Reader, msg *BlazeMessage) error {
 	if err != nil {
 		return err
 	}
-	defer gzReader.Close()
 
-	if err = jsoniter.NewDecoder(gzReader).Decode(msg); err != nil {
-		return err
-	}
-
-	return nil
+	err = jsoniter.NewDecoder(gzReader).Decode(msg)
+	_ = gzReader.Close()
+	return err
 }

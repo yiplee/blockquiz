@@ -84,7 +84,7 @@ func (d *Deliver) Run(ctx context.Context) error {
 
 	d.fromID = value.Int64()
 
-	dur := 12 * time.Millisecond
+	dur := 20 * time.Millisecond
 	timer := time.NewTimer(dur)
 
 	for {
@@ -97,7 +97,7 @@ func (d *Deliver) Run(ctx context.Context) error {
 			} else if num == 0 {
 				dur = 300 * time.Millisecond
 			} else {
-				dur = 12 * time.Millisecond
+				dur = 20 * time.Millisecond
 			}
 
 			timer.Reset(dur)
@@ -121,8 +121,8 @@ func (d *Deliver) poll(ctx context.Context) (int, error) {
 	groups, next := groupCommands(commands)
 
 	var g errgroup.Group
-	for _, group := range groups {
-		group := group
+	for uid := range groups {
+		group := groups[uid]
 		g.Go(func() error {
 			for _, cmd := range group {
 				if err := d.handleCommand(ctx, cmd); err != nil {
@@ -234,7 +234,8 @@ func groupCommands(list []*core.Command) (map[string][]*core.Command, int64) {
 	groups := make(map[string][]*core.Command)
 	var next int64
 
-	for _, cmd := range list {
+	for idx := range list {
+		cmd := list[idx]
 		user := cmd.UserID
 		groups[user] = append(groups[user], cmd)
 		next = cmd.ID
