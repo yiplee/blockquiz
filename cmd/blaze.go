@@ -19,6 +19,7 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
+	"github.com/yiplee/blockquiz/cmd/pprof"
 	"github.com/yiplee/blockquiz/operator/hub"
 )
 
@@ -32,6 +33,9 @@ var blazeCmd = &cobra.Command{
 		defer db.Close()
 		commands := provideCommandStore(db)
 		commandParser := provideParser()
+
+		go pprof.Listen(8000)
+
 		h := hub.New(commands, commandParser, hub.Config{
 			ClientID:   cfg.Bot.ClientID,
 			SessionID:  cfg.Bot.SessionID,

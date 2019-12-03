@@ -19,6 +19,7 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
+	"github.com/yiplee/blockquiz/cmd/pprof"
 	"github.com/yiplee/blockquiz/operator/deliver"
 	taskcache "github.com/yiplee/blockquiz/store/task/cache"
 	usercache "github.com/yiplee/blockquiz/store/user/cache"
@@ -44,6 +45,8 @@ var deliverCmd = &cobra.Command{
 		localizer := provideLocalizer()
 		messages := provideMessageStore(db)
 		property := providePropertyStore(db)
+
+		go pprof.Listen(8001)
 
 		d := deliver.New(
 			usercache.Cache(users),

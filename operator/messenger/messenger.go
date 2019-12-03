@@ -42,7 +42,7 @@ func (m *Messenger) Run(ctx context.Context) error {
 	log := logger.FromContext(ctx).WithField("operator", "messenger")
 	ctx = logger.WithContext(ctx, log)
 
-	dur := 12 * time.Millisecond
+	dur := 20 * time.Millisecond
 	timer := time.NewTimer(dur)
 
 	for {
