@@ -101,6 +101,9 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
 	go tick(ctx, conn)
 
 	if err = writeMessage(conn, "LIST_PENDING_MESSAGES", nil); err != nil {
@@ -113,10 +116,6 @@ func (b *BlazeClient) Loop(ctx context.Context, listener BlazeListener) error {
 	)
 
 	for {
-		if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-			return err
-		}
-
 		typ, r, err := conn.NextReader()
 		if err != nil {
 			return err
@@ -158,7 +157,7 @@ func connectMixinBlaze(c *Credential) (*websocket.Conn, error) {
 	u := url.URL{Scheme: "wss", Host: "mixin-blaze.zeromesh.net", Path: "/"}
 	dialer := &websocket.Dialer{
 		Subprotocols:   []string{"Mixin-Blaze-1"},
-		ReadBufferSize: 4096 * 2 * 2 * 2,
+		ReadBufferSize: 1024,
 	}
 	conn, _, err := dialer.Dial(u.String(), header)
 	if err != nil {
@@ -177,18 +176,13 @@ func tick(ctx context.Context, conn *websocket.Conn) error {
 		_ = conn.Close()
 	}()
 
-	conn.SetPongHandler(func(string) error {
-		return conn.SetReadDeadline(time.Now().Add(pongWait))
-	})
-
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
 			_ = conn.SetWriteDeadline(time.Now().Add(writeWait))
-			err := conn.WriteMessage(websocket.PingMessage, nil)
-			if err != nil {
+			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return fmt.Errorf("write PING failed: %w", err)
 			}
 		}
