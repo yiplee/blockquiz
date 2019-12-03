@@ -15,6 +15,8 @@ import (
 	"github.com/yiplee/blockquiz/store"
 )
 
+const defaultCourseTitle = "_default_title"
+
 type fileLoader struct {
 	courses []json.RawMessage
 	indexes map[string]int
@@ -84,7 +86,9 @@ func (s *fileLoader) insert(course *core.Course) error {
 
 	data, _ := jsoniter.Marshal(course)
 	s.courses = append(s.courses, data)
-	s.indexes[key] = len(s.courses) - 1
+	idx := len(s.courses) - 1
+	s.indexes[key] = idx
+	s.indexes[courseKey(defaultCourseTitle, course.Language)] = idx
 	return nil
 }
 
@@ -127,6 +131,13 @@ func (s *fileLoader) Find(ctx context.Context, title, language string) (*core.Co
 	key := courseKey(title, language)
 	idx, ok := s.indexes[key]
 	if !ok {
+		if title != defaultCourseTitle {
+			if course, err := s.Find(ctx, defaultCourseTitle, language); err == nil {
+				course.Title = title
+				return course, nil
+			}
+		}
+
 		return nil, store.ErrNotFound
 	}
 
