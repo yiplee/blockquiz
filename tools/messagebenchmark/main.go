@@ -61,12 +61,9 @@ func insertMsg(ctx context.Context, messages core.MessageStore) error {
 				Body:   `{"conversation_id":"88726e82-266e-3ee1-9b4e-bee452f2de46","recipient_id":"1a5d7c8b-4604-4dce-b9a0-91a3e4acf949","message_id":"7704aa1c-1878-5f5c-9e35-7ec4170edc32","category":"PLAIN_TEXT","data":"NC8xMCDkuIvpnaLlk6rkuKrkuI3mmK8gTWl4aW4g55qE5qC45b+D5Yqf6IO977yfCgpBIOetvuWIsOmihuWPliBCVEMKQiDnq6/liLDnq6/liqDlr4bogYrlpKkKQyDliJvlu7rlkITnp43lip/og73nmoTmnLrlmajkuroKRCDmnIDlronlhajmlrnkvr/nmoQgQlRDIOmSseWMhQo=","representative_id":"","quote_message_id":""}`,
 			}
 
-			start := time.Now()
 			if err := messages.Create(ctx, &msg); err != nil {
 				return err
 			}
-
-			log.Infof("create message in %s", time.Since(start))
 		}
 	}
 }
