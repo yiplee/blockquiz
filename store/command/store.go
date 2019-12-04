@@ -19,8 +19,6 @@ func New(db *db.DB) core.CommandStore {
 
 func (s *store) Create(ctx context.Context, command *core.Command) error {
 	tx := s.db.Update()
-	tx.Callback().Create().Remove("gorm:force_reload_after_create")
-
 	err := tx.Create(command).Error
 	if err != nil {
 		if err := tx.Where("trace_id = ?", command.TraceID).Last(command).Error; err == nil {

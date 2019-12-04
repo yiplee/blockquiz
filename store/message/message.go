@@ -17,8 +17,6 @@ type messageStore struct {
 
 func (m *messageStore) insert(tx *db.DB, msg *core.Message) error {
 	update := tx.Update()
-	update.Callback().Create().Remove("gorm:force_reload_after_create")
-
 	return update.Create(msg).Error
 }
 
